@@ -1,0 +1,649 @@
+.mainArea,
+.resultsArea {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+.mainArea {
+  align-items: center;
+  justify-content: center;
+}
+
+/* Upload State */
+.uploadContainer {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.headline {
+  font-size: 2.8rem;
+  max-width: 700px;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 2rem;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.subline {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin-bottom: 3rem;
+  line-height: 1.5;
+}
+
+.cardsRow {
+  display: flex;
+  width: 100%;
+  gap: 2rem;
+  align-items: stretch;
+  margin-bottom: 3rem;
+}
+
+@media (max-width: 768px) {
+  .cardsRow {
+    flex-direction: column;
+  }
+}
+
+.uploadCard {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 4rem 3.5rem;
+  min-height: 340px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.uploadCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 1px rgba(53, 116, 240, 0.2), 0 8px 32px rgba(53, 116, 240, 0.08);
+  border-color: rgba(53, 116, 240, 0.4);
+}
+
+.cardLabel {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(53, 116, 240, 0.1);
+  border: 1px solid rgba(53, 116, 240, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--keyword);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.urlInputWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  margin-top: 1rem;
+}
+
+.urlInput {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-primary);
+  outline: none;
+  transition: all 0.2s;
+}
+
+.urlInput:focus {
+  border-color: rgba(53, 116, 240, 0.5);
+  box-shadow: 0 0 0 3px rgba(53, 116, 240, 0.15);
+}
+
+.generateBtn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--keyword), var(--accent));
+  color: #ffffff;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.generateBtn:hover {
+  background: linear-gradient(135deg, #6baaff, var(--keyword));
+  box-shadow: 0 4px 20px rgba(53, 116, 240, 0.4);
+  transform: translateY(-1px);
+}
+
+.generateBtn:active {
+  box-shadow: 0 2px 10px rgba(53, 116, 240, 0.4);
+  transform: translateY(0);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.dividerText {
+  color: var(--text-tertiary);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.dropZone {
+  border: 2px dashed var(--border-focus);
+  background: var(--bg-panel);
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
+}
+
+.dropZoneActive {
+  border-color: var(--accent);
+  background: rgba(53, 116, 240, 0.05);
+}
+
+.dropContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.uploadIcon {
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.dropZoneActive .uploadIcon {
+  color: var(--keyword);
+}
+
+.dropTitle {
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.dropSub {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Skeleton Loading */
+.skeletonBlock,
+.skeletonLine,
+.skeletonText {
+  background: linear-gradient(90deg, var(--bg-input) 25%, #4a4d50 50%, var(--bg-input) 75%);
+  background-size: 200% 100%;
+  animation: pulse 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeletonLine {
+  height: 14px;
+  margin-bottom: 8px;
+}
+
+@keyframes pulse {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Debugging Water Filling Loader */
+.debuggingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.debuggingBox {
+  position: relative;
+  width: 240px;
+  height: 70px;
+  background: var(--bg-panel);
+  border: 1px solid rgba(20, 126, 239, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(20, 126, 239, 0.1);
+}
+
+.debuggingText {
+  position: relative;
+  z-index: 2;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #147eef;
+  letter-spacing: 0.02em;
+}
+
+.waterFill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.waterFill::before,
+.waterFill::after {
+  content: "";
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  left: 50%;
+  background: rgba(20, 126, 239, 0.15);
+  border-radius: 40%;
+  animation: waveFill 4s linear infinite;
+}
+
+.waterFill::after {
+  background: rgba(20, 126, 239, 0.25);
+  border-radius: 45%;
+  animation: waveFill 4.5s linear infinite;
+}
+
+@keyframes waveFill {
+  0% {
+    transform: translateX(-50%) rotate(0deg);
+    bottom: -400px;
+  }
+  50% {
+    transform: translateX(-50%) rotate(180deg);
+    bottom: -330px;
+  }
+  100% {
+    transform: translateX(-50%) rotate(360deg);
+    bottom: -400px;
+  }
+}
+
+/* Results State */
+.resultsArea {
+  padding: 1.5rem 2rem;
+}
+
+.resultsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.backBtn {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+
+.backBtn:hover {
+  background: #4a4d50;
+}
+
+.projectName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.panelsContainer {
+  display: flex;
+  gap: 1.5rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.leftPanel {
+  width: 280px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.fileTree {
+  flex: 1;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow-y: auto;
+}
+
+.treeSectionTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--keyword);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.treeFolder {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
+  padding: 0.35rem 0;
+}
+
+.treeFolder svg {
+  color: var(--function);
+}
+
+.treeItems {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 1.25rem;
+  /* indent */
+  border-left: 1px solid var(--border-color);
+  margin-left: 0.35rem;
+}
+
+.fileItem {
+  padding: 0.5rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: all 0.1s;
+  border-left: 3px solid transparent;
+}
+
+.fileItem svg {
+  color: var(--number);
+}
+
+.fileItem:hover {
+  background: var(--accent-subtle);
+  color: #fff;
+  border-left-color: var(--number);
+}
+
+.fileItemActive {
+  background: var(--accent);
+  color: #fff;
+  border-left-color: var(--function);
+}
+
+.stackBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.stackBadge {
+  background: rgba(79, 161, 255, 0.15);
+  color: var(--keyword);
+  border: 1px solid rgba(79, 161, 255, 0.3);
+  padding: 0.35rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.panelBottom {
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.downloadBtn {
+  width: 100%;
+  background: transparent;
+  color: var(--string);
+  border: 1px solid var(--string);
+  padding: 0.6rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.downloadBtn:hover {
+  background: rgba(106, 135, 89, 0.1);
+}
+
+.rightPanel {
+  flex: 1;
+  background: rgba(10, 10, 10, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.codeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--border-color);
+  height: 52px;
+}
+
+.codeTabs {
+  display: flex;
+  height: 100%;
+}
+
+.codeTabActive {
+  background: rgba(255, 255, 255, 0.03);
+  border-right: 1px solid var(--border-color);
+  padding: 0 1.25rem;
+  display: flex;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95rem;
+  color: var(--keyword);
+  font-weight: 600;
+}
+
+.copyBtn {
+  background: transparent;
+  border: 1px solid var(--border-focus);
+  padding: 0.4rem 1.3rem;
+  border-radius: 4px;
+  font-size: 0.90rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  margin-right: 0.75rem;
+  transition: all 0.2s;
+}
+
+.copyBtn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.codeContent {
+  flex: 1;
+  overflow: hidden;
+  /* Monaco handles its own scrolling */
+}
+
+
+
+/* Floating Background */
+.floatingBg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.floatingItem {
+  position: absolute;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.03);
+  white-space: nowrap;
+  animation: floatFade linear infinite;
+  opacity: 0;
+}
+
+@keyframes floatFade {
+  0% {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+}
+
+/* Error Banner */
+.errorBanner {
+  position: fixed;
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 55, 55, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 55, 55, 0.3);
+  border-radius: 10px;
+  padding: 0.85rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 999;
+  animation: bannerSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 560px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(255, 55, 55, 0.15);
+}
+
+.errorBannerIcon {
+  color: #ff5555;
+  flex-shrink: 0;
+}
+
+.errorBannerText {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #ffa0a0;
+  line-height: 1.4;
+}
+
+.errorBannerClose {
+  background: none;
+  border: none;
+  color: rgba(255, 160, 160, 0.6);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.errorBannerClose:hover {
+  color: #ff5555;
+}
+
+@keyframes bannerSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
