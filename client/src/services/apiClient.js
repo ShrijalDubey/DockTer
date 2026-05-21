@@ -31,7 +31,8 @@ apiClient.interceptors.response.use(
       // Token expired or invalid
       localStorage.removeItem('token');
       // We can force a reload to trigger AuthContext state update
-      if (window.location.pathname !== '/') {
+      // Only redirect if NOT on the login request itself
+      if (window.location.pathname !== '/' && !error.config.url.includes('/auth/login')) {
         window.location.href = '/';
       }
     }

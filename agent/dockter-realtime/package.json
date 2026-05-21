@@ -1,0 +1,8 @@
+{
+  "name": "realtime-mock",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "echo 'Mock Compile completed successfully!'",
+    "preview": "echo 'Serving mock preview on port 3000...' && node -e 'require(\"http\").createServer((req,res)=>res.end(\"Running!\")).listen(3000)'"
+  }
+}

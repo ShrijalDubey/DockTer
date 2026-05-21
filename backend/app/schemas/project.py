@@ -21,3 +21,9 @@ class Project(ProjectBase):
 
 class AnalyzeGithubRequest(BaseModel):
     url: str
+
+class GenerationPreferences(BaseModel):
+    base_image_type: str = "default"  # "default", "alpine", "slim"
+    enable_hot_reload: bool = False
+    pin_versions: bool = False
+    orchestration_target: str = "compose"  # "compose", "kubernetes"

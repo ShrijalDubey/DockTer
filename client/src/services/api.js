@@ -57,3 +57,13 @@ export async function fetchProjectFiles(projectId) {
   const res = await apiClient.get(`/projects/${projectId}/files`);
   return res.data;
 }
+
+export async function deleteProject(projectId) {
+  const res = await apiClient.delete(`/projects/${projectId}`);
+  return res.data;
+}
+
+export async function regenerateFiles(projectId, preferences) {
+  const res = await apiClient.post(`/generate/${projectId}`, preferences);
+  return res.data;
+}

@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
+import { regenerateFiles } from '../../../services/api';
+
+import FileSidebarList from './FileSidebarList';
+import TechStackBadges from './TechStackBadges';
+import ConfigurePanel from './ConfigurePanel';
+import LocalOrchestrationPanel from './LocalOrchestrationPanel';
+
 
 const ResultsSection = ({
   styles,
   result,
+  setResult,
   selectedFile, setSelectedFile,
   setAppState,
   handleDownloadAll,
@@ -11,6 +19,141 @@ const ResultsSection = ({
   copied,
   getLanguageFromFilename
 }) => {
+  const [preferences, setPreferences] = useState({
+    base_image_type: 'default',
+    enable_hot_reload: false,
+    pin_versions: false,
+    orchestration_target: 'compose'
+  });
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [regenError, setRegenError] = useState(null);
+
+  const [agentConnected, setAgentConnected] = useState(false);
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [deployLogs, setDeployLogs] = useState([]);
+  const [activeEventSource, setActiveEventSource] = useState(null);
+  const [showQuickstart, setShowQuickstart] = useState(false);
+
+  const consoleEndRef = useRef(null);
+
+  // Probes local agent every 5s in the background
+  useEffect(() => {
+    let intervalId;
+    const checkAgent = async () => {
+      try {
+        const res = await fetch('http://localhost:8001/health');
+        if (res.ok) {
+          const data = await res.json();
+          setAgentConnected(data.status === 'ok');
+        } else {
+          setAgentConnected(false);
+        }
+      } catch (err) {
+        setAgentConnected(false);
+      }
+    };
+
+    checkAgent();
+    intervalId = setInterval(checkAgent, 5000);
+    return () => {
+      clearInterval(intervalId);
+      if (activeEventSource) {
+        activeEventSource.close();
+      }
+    };
+  }, [activeEventSource]);
+
+  // Auto-scrolls console output when logs arrive
+  useEffect(() => {
+    if (consoleEndRef.current) {
+      consoleEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [deployLogs]);
+
+  const handleLocalDeploy = async () => {
+    if (isDeploying) return;
+    
+    setIsDeploying(true);
+    setDeployLogs(['🐳 Writing files and triggering local container orchestration...']);
+
+    try {
+      const response = await fetch('http://localhost:8001/deploy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          files: result.files,
+          project_name: result.project_name
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to deploy project.');
+      }
+
+      const data = await response.json();
+      setDeployLogs(prev => [
+        ...prev,
+        `📂 Workspace: ${data.workspace}`,
+        '🚀 Initializing docker-compose environment in the background...',
+        '📡 Connecting to log stream...',
+      ]);
+
+      // Connect to Live logs streaming using Server-Sent Events (SSE)
+      if (activeEventSource) {
+        activeEventSource.close();
+      }
+
+      const eventSource = new EventSource(`http://localhost:8001/logs/${result.project_name}`);
+      setActiveEventSource(eventSource);
+
+      eventSource.onmessage = (event) => {
+        setDeployLogs((prev) => [...prev, event.data]);
+      };
+
+      eventSource.onerror = () => {
+        eventSource.close();
+        setIsDeploying(false);
+      };
+    } catch (err) {
+      setDeployLogs((prev) => [...prev, `❌ Deployment failed: ${err.message}`]);
+      setIsDeploying(false);
+    }
+  };
+
+  const handleRegenerate = async () => {
+    setIsRegenerating(true);
+    setRegenError(null);
+    try {
+      const generatedFiles = await regenerateFiles(result.project_id, preferences);
+      
+      const filesMap = {};
+      generatedFiles.forEach(f => {
+        filesMap[f.file_name] = f.content;
+      });
+
+      setResult(prev => ({
+        ...prev,
+        files: filesMap
+      }));
+
+      // Keep active file selection if it exists in the new generated files; otherwise, select the first
+      const fileNames = Object.keys(filesMap);
+      if (fileNames.length > 0) {
+        if (!fileNames.includes(selectedFile)) {
+          setSelectedFile(fileNames[0]);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setRegenError(err?.response?.data?.detail || err?.message || 'Regeneration failed. Please try again.');
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
   const fileContent = result.files[selectedFile] || '';
   const language = getLanguageFromFilename(selectedFile);
 
@@ -27,48 +170,39 @@ const ResultsSection = ({
         <div className={styles.leftPanel}>
 
           <div className={styles.fileTree}>
-            <div className={styles.treeSectionTitle}>Project Files</div>
-            <div className={styles.treeFolder}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-              {result.project_name}
-            </div>
-            <div className={styles.treeItems}>
-              {Object.keys(result.files).map(fileName => (
-                <div
-                  key={fileName}
-                  className={`${styles.fileItem} ${selectedFile === fileName ? styles.fileItemActive : ''}`}
-                  onClick={() => setSelectedFile(fileName)}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
-                  {fileName}
-                </div>
-              ))}
-            </div>
+            <FileSidebarList
+              styles={styles}
+              result={result}
+              selectedFile={selectedFile}
+              setSelectedFile={setSelectedFile}
+            />
 
-            <div className={styles.treeSectionTitle} style={{ marginTop: '1.5rem' }}>Tech Stack</div>
-            <div className={styles.stackBadges}>
-              {result.languages?.map((lang, i) => (
-                <span key={`lang-${i}`} className={styles.stackBadge}>{lang}</span>
-              ))}
-              {result.frameworks?.map((fw, i) => (
-                <span key={`fw-${i}`} className={styles.stackBadge}>{fw}</span>
-              ))}
-              {result.analysis_context?.has_db && (
-                <span className={styles.stackBadge}>Database</span>
-              )}
-              {result.analysis_context?.has_redis && (
-                <span className={styles.stackBadge}>Redis</span>
-              )}
-              {result.analysis_context?.has_celery && (
-                <span className={styles.stackBadge}>Celery</span>
-              )}
-              {result.analysis_context?.has_nginx && (
-                <span className={styles.stackBadge}>Nginx</span>
-              )}
-              {result.analysis_context?.ci_cd?.map((cicd, i) => (
-                <span key={`cicd-${i}`} className={styles.stackBadge}>{cicd}</span>
-              ))}
-            </div>
+            <TechStackBadges
+              styles={styles}
+              result={result}
+            />
+
+            <ConfigurePanel
+              styles={styles}
+              preferences={preferences}
+              setPreferences={setPreferences}
+              isRegenerating={isRegenerating}
+              handleRegenerate={handleRegenerate}
+              regenError={regenError}
+            />
+
+            <LocalOrchestrationPanel
+              styles={styles}
+              agentConnected={agentConnected}
+              showQuickstart={showQuickstart}
+              setShowQuickstart={setShowQuickstart}
+              handleLocalDeploy={handleLocalDeploy}
+              isDeploying={isDeploying}
+              preferences={preferences}
+              deployLogs={deployLogs}
+              setDeployLogs={setDeployLogs}
+              consoleEndRef={consoleEndRef}
+            />
           </div>
 
           <div className={styles.panelBottom}>

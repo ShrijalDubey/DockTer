@@ -37,34 +37,6 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, []);
 
-  const login = async (username, password) => {
-    // OAuth2PasswordRequestForm expects form-urlencoded
-    const formData = new URLSearchParams();
-    formData.append('username', username);
-    formData.append('password', password);
-
-    const res = await apiClient.post('/auth/login', formData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    });
-    
-    const { access_token } = res.data;
-    localStorage.setItem('token', access_token);
-    
-    // Fetch user details
-    const userRes = await apiClient.get('/auth/me', {
-      headers: { Authorization: `Bearer ${access_token}` }
-    });
-    setUser(userRes.data);
-  };
-
-  const register = async (username, password) => {
-    await apiClient.post('/auth/register', { username, password });
-    // Automatically login after registration
-    await login(username, password);
-  };
-
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
@@ -75,7 +47,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ 
-      user, login, register, logout, loading, 
+      user, logout, loading, 
       isAuthModalOpen, openAuthModal, closeAuthModal 
     }}>
       {children}

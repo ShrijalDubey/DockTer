@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { generateFromUrl, generateFromZip, fetchProjectFiles } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import JSZip from 'jszip';
@@ -106,6 +106,18 @@ export const useGenerator = () => {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  useEffect(() => {
+    const handleProjectDeleted = (e) => {
+      const deletedId = e.detail.projectId;
+      if (result && result.project_id === deletedId) {
+        setResult(null);
+        setAppState('upload');
+      }
+    };
+    window.addEventListener('projectDeleted', handleProjectDeleted);
+    return () => window.removeEventListener('projectDeleted', handleProjectDeleted);
+  }, [result]);
 
   return {
     appState, setAppState,

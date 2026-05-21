@@ -358,7 +358,7 @@
 }
 
 .leftPanel {
-  width: 280px;
+  width: 440px;
   background: var(--bg-panel);
   border: 1px solid var(--border-color);
   border-radius: 6px;
@@ -366,35 +366,91 @@
   flex-direction: column;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  transition: width 0.3s ease;
 }
 
 .fileTree {
   flex: 1;
-  padding: 1rem;
+  padding: 1.25rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 1.5rem;
   overflow-y: auto;
 }
 
-.treeSectionTitle {
+.sidebarSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--keyword);
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.75rem;
+  letter-spacing: 0.08em;
+  padding-left: 0.2rem;
+}
+
+.sidebarHeaderInteractive {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  transition: color 0.2s ease;
+}
+
+.sidebarHeaderInteractive:hover {
+  color: var(--text-primary);
+}
+
+.sidebarChevron {
+  font-size: 0.725rem;
+  color: var(--text-tertiary);
+  transition: transform 0.2s ease;
+  margin-left: auto;
+  display: inline-block;
+}
+
+.sidebarChevronCollapsed {
+  transform: rotate(-90deg);
+}
+
+.sidebarCard {
+  background: rgba(255, 255, 255, 0.01);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebarCard:hover {
+  border-color: rgba(53, 116, 240, 0.25);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18), 0 0 12px rgba(53, 116, 240, 0.03);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .treeFolder {
-  font-size: 1.15rem;
+  font-size: 1.025rem;
   font-weight: 600;
   color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  margin-bottom: 0.25rem;
-  padding: 0.35rem 0;
+  margin-bottom: 0.1rem;
+  padding: 0.2rem 0;
 }
 
 .treeFolder svg {
@@ -405,17 +461,17 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding-left: 1.25rem;
+  padding-left: 1rem;
   /* indent */
   border-left: 1px solid var(--border-color);
   margin-left: 0.35rem;
 }
 
 .fileItem {
-  padding: 0.5rem 0.6rem;
+  padding: 0.45rem 0.55rem;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 1.05rem;
+  font-size: 0.975rem;
   font-weight: 500;
   color: var(--text-primary);
   display: flex;
@@ -646,4 +702,376 @@
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
+}
+
+/* Tweak & Configure Card (Unified into .sidebarCard) */
+
+.tweakField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tweakLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tweakSelect {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.45rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tweakSelect:focus {
+  border-color: rgba(53, 116, 240, 0.5);
+  box-shadow: 0 0 0 2px rgba(53, 116, 240, 0.15);
+}
+
+.tweakFieldRow {
+  display: flex;
+  align-items: center;
+}
+
+.tweakSwitchLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  user-select: none;
+}
+
+.tweakSwitchLabel input[type="checkbox"] {
+  accent-color: var(--keyword);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.tweakSwitchText {
+  transition: color 0.2s;
+}
+
+.tweakSwitchLabel:hover .tweakSwitchText {
+  color: #fff;
+}
+
+.tweakBtn {
+  background: linear-gradient(135deg, var(--keyword), var(--accent));
+  color: #ffffff;
+  border: none;
+  padding: 0.55rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+}
+
+.tweakBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6baaff, var(--keyword));
+  box-shadow: 0 4px 12px rgba(53, 116, 240, 0.3);
+  transform: translateY(-1px);
+}
+
+.tweakBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tweakError {
+  background: rgba(255, 85, 85, 0.1);
+  border: 1px solid rgba(255, 85, 85, 0.3);
+  color: #ffa0a0;
+  font-size: 0.8rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  line-height: 1.4;
+  margin-top: 0.25rem;
+}
+
+/* Spinner Loader */
+.tweakLoader {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Local Orchestration Section (Unified into .sidebarCard) */
+
+.orchestrateStatusRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.orchestrateLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statusConnected {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  text-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.statusOffline {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.agentInstruction {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-top: 0.25rem;
+}
+
+.agentCodeBlock {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 0.6rem;
+  margin-top: 0.5rem;
+  color: var(--keyword);
+  word-break: break-all;
+  user-select: all;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.orchestrateBtn {
+  background: linear-gradient(135deg, var(--keyword), var(--accent));
+  color: #ffffff;
+  border: none;
+  padding: 0.6rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+}
+
+.orchestrateBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6baaff, var(--keyword));
+  box-shadow: 0 4px 12px rgba(53, 116, 240, 0.3);
+  transform: translateY(-1px);
+}
+
+.orchestrateBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.orchestrateBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Console Styling */
+.consoleContainer {
+  margin-top: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(10, 10, 10, 0.85);
+  overflow: hidden;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+}
+
+.consoleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.consoleClearBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.consoleClearBtn:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.consoleClearBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.consoleOutput {
+  padding: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #e2e8f0;
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.consoleOutput::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.consoleOutput::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  border: none;
+}
+
+.consoleOutput::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.consoleLine {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Quickstart Setup Guide */
+.quickstartToggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.quickstartToggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(53, 116, 240, 0.2);
+}
+
+.quickstartToggleText {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.quickstartArrow {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  transition: transform 0.2s;
+}
+
+.quickstartBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.85rem 0.5rem 0.5rem 0.5rem;
+  border-left: 2px solid rgba(53, 116, 240, 0.25);
+  margin-left: 0.5rem;
+  margin-top: 0.25rem;
+  background: rgba(255, 255, 255, 0.01);
+  border-radius: 0 0 0 6px;
+}
+
+.stepItem {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+
+.stepNumber {
+  background: rgba(53, 116, 240, 0.15);
+  border: 1px solid rgba(53, 116, 240, 0.3);
+  color: var(--keyword);
+  font-size: 0.8rem;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.stepText {
+  font-size: 0.825rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.stepText strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.inlineConnected {
+  color: #10b981;
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
 }

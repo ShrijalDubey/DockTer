@@ -11,6 +11,35 @@ import git
 
 router = APIRouter(prefix="/analyze", tags=["analyze"])
 
+@router.post("/direct")
+async def analyze_direct(
+    file: UploadFile = File(...)
+):
+    if not file.filename.endswith('.zip'):
+        raise HTTPException(status_code=400, detail="Only ZIP files are supported")
+
+    temp_dir = tempfile.mkdtemp()
+    zip_path = os.path.join(temp_dir, file.filename)
+    
+    try:
+        with open(zip_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        extract_dir = os.path.join(temp_dir, "extracted")
+        os.makedirs(extract_dir, exist_ok=True)
+        
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_dir)
+
+        # Analyze
+        context = analyze_project(extract_dir)
+        return context
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
 @router.post("/upload", response_model=schemas.Project)
 async def analyze_upload(
     file: UploadFile = File(...),

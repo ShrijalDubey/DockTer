@@ -1,35 +1,11 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import styles from './AuthModal.module.css';
 
 const AuthModal = () => {
-  const { login, register, isAuthModalOpen, closeAuthModal } = useContext(AuthContext);
-  const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const { isAuthModalOpen, closeAuthModal } = useContext(AuthContext);
 
   if (!isAuthModalOpen) return null;
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-    
-    try {
-      if (isLogin) {
-        await login(username, password);
-      } else {
-        await register(username, password);
-      }
-      closeAuthModal();
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Authentication failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleGithubLogin = () => {
     window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/auth/github/login`;
@@ -43,51 +19,9 @@ const AuthModal = () => {
         <div className={styles.header}>
           <h1 className={styles.title}>DockerGen AI</h1>
           <p className={styles.subtitle}>
-            {isLogin ? 'Welcome back. Sign in to continue.' : 'Create an account to get started.'}
+            Sign in with your GitHub account to continue.
           </p>
         </div>
-
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <div className={styles.inputGroup}>
-            <label className={styles.label} htmlFor="username">Username</label>
-            <input 
-              id="username"
-              type="text" 
-              className={styles.input}
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="developer"
-              required
-              autoComplete="username"
-            />
-          </div>
-
-          <div className={styles.inputGroup}>
-            <label className={styles.label} htmlFor="password">Password</label>
-            <input 
-              id="password"
-              type="password" 
-              className={styles.input}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              autoComplete="current-password"
-            />
-          </div>
-
-          {error && <p className={styles.error}>{error}</p>}
-
-          <button 
-            type="submit" 
-            className={styles.submitBtn}
-            disabled={isLoading || !username || !password}
-          >
-            {isLoading ? 'Processing...' : isLogin ? 'Sign In' : 'Sign Up'}
-          </button>
-        </form>
-
-        <div className={styles.divider}>or</div>
 
         <button className={styles.githubBtn} onClick={handleGithubLogin}>
           <svg height="20" aria-hidden="true" viewBox="0 0 16 16" version="1.1" width="20" data-view-component="true" fill="currentColor">
@@ -95,19 +29,6 @@ const AuthModal = () => {
           </svg>
           Continue with GitHub
         </button>
-
-        <div className={styles.toggleContainer}>
-          {isLogin ? "Don't have an account?" : "Already have an account?"}
-          <button 
-            className={styles.toggleBtn}
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError('');
-            }}
-          >
-            {isLogin ? 'Sign up' : 'Sign in'}
-          </button>
-        </div>
       </div>
     </div>
   );

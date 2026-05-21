@@ -1,8 +1,13 @@
+import os
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+env_file_path = BASE_DIR / ".env"
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(env_file_path),
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -10,7 +15,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "DockerGen API"
     VERSION: str = "1.0.0"
     
-    DATABASE_URL: str = "sqlite:///./dockergen.db"
+    DATABASE_URL: str = f"sqlite:///{BASE_DIR}/dockergen.db"
     
     JWT_SECRET_KEY: str = "supersecretkey_dockergen_dev"
     JWT_ALGORITHM: str = "HS256"

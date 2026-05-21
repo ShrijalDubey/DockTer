@@ -17,4 +17,4 @@ class Project(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="projects")
 
-    files = relationship("GeneratedFile", back_populates="project")
+    files = relationship("GeneratedFile", back_populates="project", cascade="all, delete-orphan")

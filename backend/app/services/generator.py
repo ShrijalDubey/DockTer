@@ -5,94 +5,10 @@ from pathlib import Path
 from groq import Groq
 from dotenv import load_dotenv
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+load_dotenv(dotenv_path=BASE_DIR / ".env")
 
-# ── Stack-specific build guidance injected into the LLM prompt ───────────────
-STACK_GUIDES = {
-    "flutter": """
-FLUTTER / DART STACK RULES:
-- Dockerfile should use ghcr.io/cirruslabs/flutter:stable as builder
-- Build web output: RUN flutter build web --release
-- Serve with nginx:alpine, COPY --from=builder /app/build/web /usr/share/nginx/html
-- docker-compose must NOT try to run Flutter app natively; it serves the web build
-- GitHub Actions: use subosito/flutter-action@v2, steps: flutter pub get, flutter test, flutter build web
-""",
-    "react_native": """
-REACT NATIVE / EXPO STACK RULES:
-- React Native apps cannot run in Docker containers (they target iOS/Android)
-- Dockerfile should be for any backend API service only
-- For Expo managed: GitHub Actions should use expo-github-action to run eas build
-- docker-compose is only for backend services, not the mobile app itself
-- Clearly comment in generated files that mobile build is handled by EAS/Fastlane
-""",
-    "spring_boot": """
-SPRING BOOT STACK RULES:
-- Multi-stage Dockerfile: maven:3.9-eclipse-temurin-21 to build, eclipse-temurin:21-jre-jammy to run
-- Build command: RUN mvn clean package -DskipTests
-- Run: ENTRYPOINT ["java", "-jar", "app.jar"]
-- Expose port 8080 by default
-- GitHub Actions: use actions/setup-java@v4 with distribution: temurin, java-version: 21
-- Include: mvn test in CI
-""",
-    "go": """
-GO STACK RULES:
-- Multi-stage Dockerfile: golang:1.22-alpine to build, scratch or alpine:3.19 to run
-- Build: RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app ./...
-- Copy only the binary into scratch/alpine final image
-- GitHub Actions: use actions/setup-go@v5, run go test ./..., go build
-- Default port 8080
-""",
-    "rust": """
-RUST STACK RULES:
-- Multi-stage Dockerfile: rust:1.77-slim as builder, debian:bookworm-slim as runner
-- Build: RUN cargo build --release
-- Copy target/release/<binary> to runner
-- GitHub Actions: use actions-rs/toolchain or dtolnay/rust-toolchain, run cargo test, cargo build --release
-- Default port 8080
-""",
-    "dotnet": """
-.NET / ASP.NET CORE STACK RULES:
-- Multi-stage Dockerfile: mcr.microsoft.com/dotnet/sdk:8.0 to build, mcr.microsoft.com/dotnet/aspnet:8.0 to run
-- Build: RUN dotnet publish -c Release -o /app/publish
-- GitHub Actions: use actions/setup-dotnet@v4 with dotnet-version: 8.x
-- Run: dotnet test, dotnet publish in CI
-- Default port 8080 (set via ASPNETCORE_URLS)
-""",
-    "php": """
-PHP / LARAVEL / SYMFONY STACK RULES:
-- Dockerfile: php:8.3-fpm-alpine + nginx:alpine in same compose, or php:8.3-apache
-- Install composer: COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-- Run: composer install --no-dev --optimize-autoloader
-- For Laravel: php artisan config:cache, php artisan route:cache
-- GitHub Actions: use shivammathur/setup-php@v2 with php-version: 8.3
-- Run: composer test or vendor/bin/phpunit
-""",
-    "ruby": """
-RUBY / RAILS STACK RULES:
-- Dockerfile: ruby:3.3-slim, install bundler, run bundle install --without development test
-- For Rails: precompile assets, run migrations via entrypoint
-- GitHub Actions: use ruby/setup-ruby@v1 with bundler-cache: true
-- Run: bundle exec rspec or bundle exec rails test
-- Default port 3000
-""",
-    "elixir": """
-ELIXIR / PHOENIX STACK RULES:
-- Multi-stage Dockerfile: elixir:1.16-alpine to build mix release, alpine:3.19 to run
-- Build: RUN mix deps.get --only prod && mix compile && mix release
-- GitHub Actions: elixir-lang/setup-elixir or setup with erlef/setup-beam@v1
-- Run: mix test in CI
-- Default port 4000
-""",
-    "swift": """
-SWIFT STACK RULES:
-- Dockerfile: swift:5.10-jammy to build, ubuntu:22.04 to run
-- Build: RUN swift build -c release
-- GitHub Actions: use swift-actions/setup-swift@v2
-- Default port 8080
-""",
-}
-
-
+from app.services.prompts import STACK_GUIDES
 def _infer_runner(context: dict) -> str:
     return "ubuntu-latest"
 
@@ -122,17 +38,85 @@ def _collect_stack_guides(context: dict) -> str:
     return "\n".join(guides) if guides else ""
 
 
-def _build_prompt(context: dict) -> str:
+def _build_prompt(context: dict, preferences: dict = None) -> str:
     stack_specific = _collect_stack_guides(context)
     runner = _infer_runner(context)
 
+    pref_instruction = ""
+    is_k8s = False
+    
+    if preferences:
+        pref_rules = []
+        base_img = preferences.get("base_image_type", "default")
+        if base_img == "alpine":
+            pref_rules.append("- BASE IMAGE PREFERENCE: You MUST use Alpine-based lightweight base images (e.g. python:3.11-alpine, node:20-alpine) wherever possible.")
+        elif base_img == "slim":
+            pref_rules.append("- BASE IMAGE PREFERENCE: You MUST use slim-based lightweight base images (e.g. python:3.11-slim, node:20-slim) wherever possible.")
+        
+        if preferences.get("enable_hot_reload"):
+            pref_rules.append("- DEVELOPMENT PREFERENCE: You MUST configure docker-compose for local development hot-reloading. Mount appropriate local host volumes, configure watch options, set environment variables (e.g. WATCHPACK_POLLING=true, FLASK_DEBUG=1, etc.), and ensure cache folders (like node_modules) are not overridden by local mounts.")
+        
+        if preferences.get("pin_versions"):
+            pref_rules.append("- VERSIONING PREFERENCE: You MUST pin exact runtime and package versions in Dockerfiles and Compose configurations (e.g. use node:20.11.0-alpine instead of node:alpine; do not use 'latest' tags for database or service images; use specific versions like postgres:16.2-alpine, redis:7.2-alpine).")
+            
+        if preferences.get("orchestration_target") == "kubernetes":
+            is_k8s = True
+            pref_rules.append("- ORCHESTRATION PREFERENCE: In addition to standard Dockerfiles and Compose setups, you MUST generate production-ready Kubernetes (K8s) manifests under the 'k8s/' folder. Include Deployments, Services, ConfigMaps, and an Ingress specification. You MUST also modify the GitHub Actions CI/CD to support Kubernetes rolling deployment workflows.")
+            
+        if pref_rules:
+            pref_instruction = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nUSER PREFERENCES (MUST follow above all else)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" + "\n".join(pref_rules) + "\n\n"
+
+    k8s_manifest_rules = ""
+    output_format_keys = """- "Dockerfile"                   (always)
+- "Dockerfile.frontend"          (only if has_frontend=true and NOT mobile-only)
+- "Dockerfile.worker"            (only if has_celery=true)
+- "docker-compose.yml"           (always)
+- ".dockerignore"                (always)
+- ".github/workflows/ci.yml"     (always)"""
+
+    if is_k8s:
+        k8s_manifest_rules = """
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+KUBERNETES MANIFESTS RULES (generate these in addition to Docker)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+You MUST generate 4 separate K8s configuration files:
+1. "k8s/deployments.yaml":
+   - Generate complete Deployments for all required services (e.g. frontend, api, db, redis, celery worker).
+   - Use 'replicas: 2' for production-ready app services, and 'replicas: 1' for databases/caches.
+   - Configure 'livenessProbe' and 'readinessProbe' with correct paths (e.g. httpGet to port and path /health or similar).
+   - Set standard 'resources.limits' and 'resources.requests' (CPU/Memory limits).
+   - Set standard non-root security context: 'securityContext.runAsNonRoot: true'.
+   - Pull image referencing ghcr.io/${{ github.repository }}/${service_name}:${{ github.sha }}
+2. "k8s/services.yaml":
+   - Define a K8s 'Service' exposing each deployment.
+   - Use 'ClusterIP' for internal microservices, database, and Redis.
+   - Use 'LoadBalancer' or 'NodePort' for frontend and public entry point gateways.
+3. "k8s/ingress.yaml":
+   - Generate an Ingress manifest using apiVersion: networking.k8s.io/v1.
+   - Route external path '/' to frontend service, and '/api' to backend API service.
+4. "k8s/configmaps.yaml":
+   - Declare a ConfigMap resource holding all non-sensitive environmental variables detected in project metadata (e.g. API ports, static URLs, configuration configs).
+
+"""
+        output_format_keys += """
+- "k8s/deployments.yaml"         (always)
+- "k8s/services.yaml"            (always)
+- "k8s/ingress.yaml"             (always)
+- "k8s/configmaps.yaml"          (always)"""
+
+    ci_deploy_instructions = """- Jobs: at minimum "test" and "build" jobs; add "deploy" job as a commented-out template"""
+    if is_k8s:
+        ci_deploy_instructions = """- Jobs: at minimum "test" and "build" jobs; add a commented-out Kubeconfig + "deploy" job targeting Kubernetes rollout, e.g. using 'kubectl apply -f k8s/' and 'kubectl rollout status deployment/<deployment-name>'"""
+
     return f"""
-You are a Docker and CI/CD expert. Analyze the following project metadata and generate production-ready configuration files.
+You are a Docker, Kubernetes, and CI/CD expert. Analyze the following project metadata and generate production-ready configuration files.
 
 Project metadata:
 {json.dumps(context, indent=2)}
 
 {("Stack-specific rules (MUST follow):\n" + stack_specific) if stack_specific else ""}
+
+{pref_instruction}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 DOCKER FILE RULES (apply to ALL stacks)
@@ -153,12 +137,12 @@ DOCKER FILE RULES (apply to ALL stacks)
 12. If has_frontend=true AND not a mobile-only project: Dockerfile.frontend using multi-stage node build → nginx:alpine.
 13. Backend Dockerfile: COPY backend/ . (not COPY . .) if backend/ directory exists.
 14. Worker Dockerfile: COPY worker/ . (not COPY . .) if worker/ directory exists.
-15. Always add HEALTHCHECK to every service.
+15. Always add HEALTHCHECK to every service. In docker-compose.yml, 'healthcheck.test' MUST be an array starting with either "CMD" or "CMD-SHELL", e.g. ["CMD", "curl", "-f", "http://localhost:3000"] or ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"].
 16. Add .env.example comments in compose for env_vars found.
 17. If has_db=true: add appropriate DB service (postgres:16-alpine, mysql:8, mongo:7) to compose.
 18. If has_redis=true: add redis:7-alpine to compose.
 19. For React Native: Dockerfile is for backend only; add a large comment explaining mobile builds use EAS/Fastlane.
-
+{k8s_manifest_rules}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 GITHUB ACTIONS RULES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -166,7 +150,7 @@ Generate a complete GitHub Actions CI/CD workflow with these characteristics:
 - Runner: {runner}
 - File path key in output JSON: ".github/workflows/ci.yml"
 - Triggers: push to main/master, pull_request to main/master
-- Jobs: at minimum "test" and "build" jobs; add "deploy" job as a commented-out template
+{ci_deploy_instructions}
 - Use correct language setup action for the detected stack (e.g. actions/setup-python, actions/setup-java, etc.)
 - Cache dependencies (pip, npm/yarn, gradle, cargo, go modules, bundler, composer, mix deps, etc.)
 - Run test suite if test_frameworks were detected
@@ -188,12 +172,7 @@ Generate a complete GitHub Actions CI/CD workflow with these characteristics:
 OUTPUT FORMAT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Return ONLY a raw JSON object. Include only the keys that are applicable:
-- "Dockerfile"                   (always)
-- "Dockerfile.frontend"          (only if has_frontend=true and NOT mobile-only)
-- "Dockerfile.worker"            (only if has_celery=true)
-- "docker-compose.yml"           (always)
-- ".dockerignore"                (always)
-- ".github/workflows/ci.yml"     (always)
+{output_format_keys}
 
 No markdown fences, no backticks, no explanation text. Output ONLY the JSON object.
 The values are multiline strings — use \\n for newlines inside JSON strings.
@@ -202,22 +181,97 @@ The values are multiline strings — use \\n for newlines inside JSON strings.
 
 def _parse_response(raw: str) -> dict:
     raw = raw.strip()
-    raw = re.sub(r"^```(?:json)?\s*", "", raw)
-    raw = re.sub(r"\s*```$", "", raw)
-    raw = raw.strip()
+    
+    # Try parsing directly
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        pass
+        
+    # Strip markdown fences if present
+    cleaned = re.sub(r"^```(?:json)?\s*", "", raw)
+    cleaned = re.sub(r"\s*```$", "", cleaned)
+    cleaned = cleaned.strip()
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        pass
+
+    # Try to extract a JSON block using first { and last }
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
+    if start != -1 and end != -1:
+        try:
+            return json.loads(cleaned[start:end+1])
+        except json.JSONDecodeError:
+            pass
+
+    # If all fails, fall back to the original method and let it raise JSONDecodeError
     return json.loads(raw)
 
 
-def generate_docker_files(context: dict) -> dict:
+def _prune_context(context: dict) -> dict:
+    # Create a shallow copy so we don't modify the database record's memory representation
+    pruned = dict(context)
+    
+    # 1. Prune file_tree if present (limit to 50 shallow files)
+    if "file_tree" in pruned and isinstance(pruned["file_tree"], list):
+        original_tree = pruned["file_tree"]
+        pruned_tree = []
+        for path in original_tree:
+            norm_path = path.replace("\\", "/")
+            parts = norm_path.split("/")
+            
+            # Skip noise dirs
+            if any(p in (".git", "node_modules", "venv", ".venv", "__pycache__", "dist", "build", ".next", ".nuxt", "target", "vendor") for p in parts):
+                continue
+                
+            # Keep if depth is shallow (<= 2 levels)
+            if len(parts) <= 3:
+                pruned_tree.append(path)
+                
+        # Aggressively limit to first 50 files if still very large
+        if len(pruned_tree) > 50:
+            pruned_tree = pruned_tree[:50] + [f"... and {len(pruned_tree) - 50} more files (truncated for size)"]
+            
+        pruned["file_tree"] = pruned_tree
+
+    # 2. Prune package_files if present (keep only key manifests, limit to 1500 chars)
+    if "package_files" in pruned:
+        pkg_files = pruned["package_files"]
+        if isinstance(pkg_files, dict):
+            new_pkg_files = {}
+            for name, content in pkg_files.items():
+                base_name = name.split("\\")[-1].split("/")[-1].lower()
+                # Only keep key manifest files to stay within rate/token limits
+                if base_name not in ("package.json", "requirements.txt", "cargo.toml", "go.mod", "pom.xml", "build.gradle", "mix.exs", "gemfile", "composer.json", "pubspec.yaml"):
+                    continue
+                if isinstance(content, str):
+                    if len(content) > 1500:
+                        new_pkg_files[name] = content[:1500] + "\n... [content truncated for size] ..."
+                    else:
+                        new_pkg_files[name] = content
+                else:
+                    new_pkg_files[name] = content
+            pruned["package_files"] = new_pkg_files
+            
+    return pruned
+
+
+def generate_docker_files(context: dict, preferences: dict = None) -> dict:
     from app.core.config import settings
     client = Groq(api_key=settings.GROQ_API_KEY)
-    prompt = _build_prompt(context)
+    
+    # Prune the context before building prompt to stay well within limits
+    pruned_ctx = _prune_context(context)
+    prompt = _build_prompt(pruned_ctx, preferences)
 
+    # Use max_tokens=4000 to keep the total requested tokens well below the 12k TPM free-tier limit
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.2,
-        max_tokens=8192,
+        max_tokens=4000,
     )
 
     raw = response.choices[0].message.content.strip()
@@ -229,4 +283,4 @@ def write_files(output: dict, target_dir: str):
         path = Path(target_dir) / filename
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
-        print(f"  ✅ {filename}")
+        print(f"  [Created] {filename}")

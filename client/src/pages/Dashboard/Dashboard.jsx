@@ -60,6 +60,7 @@ const Dashboard = () => {
           <ResultsSection 
             styles={styles}
             result={result}
+            setResult={setResult}
             selectedFile={selectedFile}
             setSelectedFile={setSelectedFile}
             setAppState={setAppState}
