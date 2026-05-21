@@ -14,7 +14,6 @@
 
 Building production-ready container ecosystems is usually a cycle of trial, error, and boilerplate configuration. **DockTer** bridges this gap by introducing an **AI-driven, local-first bridge** that understands your stack, writes optimized configurations, and deploys them to your machine in seconds.
 
-![DockTer Architecture](client/src/assets/hero.png)
 
 ---
 
@@ -149,4 +148,3 @@ Once the frontend, backend, and PyPI agent are running:
 
 ---
 
-*Made with 🐳 and 💙 by the DockTer team.*
