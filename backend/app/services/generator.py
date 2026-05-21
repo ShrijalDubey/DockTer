@@ -73,6 +73,7 @@ def _build_prompt(context: dict, preferences: dict = None) -> str:
 - "Dockerfile.worker"            (only if has_celery=true)
 - "docker-compose.yml"           (always)
 - ".dockerignore"                (always)
+- ".flake8"                      (only if Python is used in backend/worker/stack)
 - ".github/workflows/ci.yml"     (always)"""
 
     if is_k8s:
@@ -109,13 +110,15 @@ You MUST generate 4 separate K8s configuration files:
     if is_k8s:
         ci_deploy_instructions = """- Jobs: at minimum "test" and "build" jobs; add a commented-out Kubeconfig + "deploy" job targeting Kubernetes rollout, e.g. using 'kubectl apply -f k8s/' and 'kubectl rollout status deployment/<deployment-name>'"""
 
+    stack_rules_str = f"Stack-specific rules (MUST follow):\n{stack_specific}" if stack_specific else ""
+
     return f"""
 You are a Docker, Kubernetes, and CI/CD expert. Analyze the following project metadata and generate production-ready configuration files.
 
 Project metadata:
 {json.dumps(context, indent=2)}
 
-{("Stack-specific rules (MUST follow):\n" + stack_specific) if stack_specific else ""}
+{stack_rules_str}
 
 {pref_instruction}
 
@@ -144,6 +147,7 @@ DOCKER FILE RULES (apply to ALL stacks)
 19. For React Native: Dockerfile is for backend only; add a large comment explaining mobile builds use EAS/Fastlane.
 20. If the backend application utilizes packages that require system executables (e.g. GitPython requiring git), you MUST include commands in the backend Dockerfile to install these system dependencies (e.g. apt-get update && apt-get install -y --no-install-recommends git) via the package manager before running the app.
 21. When generating database connection URLs for PostgreSQL using SQLAlchemy, always use the `postgresql://` dialect prefix scheme instead of the deprecated and unsupported `postgres://` scheme.
+22. If a Python backend or worker is used, you MUST generate a corresponding '.flake8' configuration file under the key ".flake8" which ignores cosmetic/style-only check failures (e.g. ignore E501, E302, E303, W291, W293, E305, E261, E127, E221, E272, E701, F401, E402, F541, W391, E301) and excludes standard build, virtualenv, and package directories.
 {k8s_manifest_rules}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 GITHUB ACTIONS RULES
@@ -156,7 +160,7 @@ Generate a complete GitHub Actions CI/CD workflow with these characteristics:
 - Use correct language setup action for the detected stack (e.g. actions/setup-python, actions/setup-java, etc.)
 - Cache dependencies (pip, npm/yarn, gradle, cargo, go modules, bundler, composer, mix deps, etc.)
 - Run test suite if test_frameworks were detected
-- Build Docker image and push to ghcr.io (GitHub Container Registry) in "build" job
+- Build Docker image and push to ghcr.io (GitHub Container Registry) in "build" job. You MUST explicitly set "registry: ghcr.io" in the docker/login-action step to prevent it from defaulting to Docker Hub and failing on GITHUB_TOKEN.
 - Use docker/setup-buildx-action and docker/build-push-action
 - Tag image as ghcr.io/${{{{ github.repository }}}}:${{{{ github.sha }}}}
 - For Flutter: use subosito/flutter-action@v2

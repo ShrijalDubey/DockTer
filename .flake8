@@ -1,0 +1,14 @@
+[flake8]
+ignore = E501, E302, E303, W291, W293, E305, E261, E127, E221, E272, E701, F401, E402, F541, W391, E301
+exclude =
+    .git,
+    __pycache__,
+    build,
+    dist,
+    node_modules,
+    venv,
+    .venv,
+    agent/dist,
+    agent/dockter-*,
+    client/dist
+max-line-length = 120
