@@ -14,6 +14,7 @@
 
 Building production-ready container ecosystems is usually a cycle of trial, error, and boilerplate configuration. **DockTer** bridges this gap by introducing an **AI-driven, local-first bridge** that understands your stack, writes optimized configurations, and deploys them to your machine in seconds.
 
+![DockTer Architecture](client/src/assets/logo.png)
 
 ---
 
@@ -147,4 +148,5 @@ Once the frontend, backend, and PyPI agent are running:
 - **Sanitized Executions**: Container processes run securely in user-initiated terminal sessions, completely isolating system operations from external exploits.
 
 ---
+
 
