@@ -1,18 +1,33 @@
-version: '3.8'
-
 services:
-  db:
-    image: postgres:15-alpine
-    container_name: dockergen_db
-    environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: dockergen
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "5432:5432"
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/database
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=database
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
+      - db-data:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
+  db-data:
+

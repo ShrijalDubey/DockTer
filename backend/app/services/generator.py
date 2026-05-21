@@ -69,6 +69,7 @@ def _build_prompt(context: dict, preferences: dict = None) -> str:
     k8s_manifest_rules = ""
     output_format_keys = """- "Dockerfile"                   (always)
 - "Dockerfile.frontend"          (only if has_frontend=true and NOT mobile-only)
+- "client/nginx.conf"            (only if has_frontend=true and NOT mobile-only)
 - "Dockerfile.worker"            (only if has_celery=true)
 - "docker-compose.yml"           (always)
 - ".dockerignore"                (always)
@@ -121,27 +122,28 @@ Project metadata:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 DOCKER FILE RULES (apply to ALL stacks)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. Use correct minimal base images for the detected stack.
+1. Use correct minimal base images for the detected stack. Always use modern runtime versions (e.g. node:20-alpine or newer) in the frontend builder stage to satisfy modern framework requirements (like Vite 8+).
 2. Always use multi-stage builds when the stack compiles/builds an artifact.
 3. Set WORKDIR before COPY.
 4. Always set USER (named user via groupadd/useradd) AFTER installing dependencies, NEVER before.
 5. Always COPY all source files before switching to non-root USER.
-6. Use nested build context in compose: build: {{ context: ., dockerfile: X }}
-   NEVER use build and dockerfile as sibling keys.
+6. Use nested build context in compose: build: {{ context: ., dockerfile: X }}. NEVER use build and dockerfile as sibling keys. Do NOT include the obsolete `version: '3'` or `version: '3.x'` attribute in `docker-compose.yml` as it is deprecated in the modern Compose spec. For frontend services, always include a `depends_on` block referencing the backend service to ensure correct container startup order.
 7. healthcheck fields must be direct keys, never list items with dashes.
 8. Default ports: Python=8000, Node=3000, Java/Go/Rust/.NET/Swift=8080, Ruby=3000, PHP=80, Elixir=4000, Flutter web=80.
    Use detected port from metadata if available.
 9. .dockerignore: NEVER ignore source extensions (*.py *.go *.ts etc.), only ignore compiled/cache artifacts.
 10. If has_celery=true: separate worker service in compose with celery inspect ping healthcheck.
 11. If has_nginx=true: add nginx:alpine service with nginx.conf volume mount.
-12. If has_frontend=true AND not a mobile-only project: Dockerfile.frontend using multi-stage node build → nginx:alpine.
+12. If has_frontend=true AND not a mobile-only project: Dockerfile.frontend using multi-stage node build → nginx:alpine. You MUST also generate an optimized Nginx configuration under the key "client/nginx.conf" which serves client assets on port 3000 and proxies `/api` requests dynamically using Docker's internal DNS resolver to prevent start crashes (e.g., resolver 127.0.0.11 valid=30s; set $backend http://backend:8000; proxy_pass $backend;).
 13. Backend Dockerfile: COPY backend/ . (not COPY . .) if backend/ directory exists.
 14. Worker Dockerfile: COPY worker/ . (not COPY . .) if worker/ directory exists.
-15. Always add HEALTHCHECK to every service. In docker-compose.yml, 'healthcheck.test' MUST be an array starting with either "CMD" or "CMD-SHELL", e.g. ["CMD", "curl", "-f", "http://localhost:3000"] or ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"].
+15. Always add HEALTHCHECK to every service. In docker-compose.yml, 'healthcheck.test' MUST be an array starting with either "CMD" or "CMD-SHELL", e.g. ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"] or ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1"]. Do NOT assume CLI tools like `curl` are installed in minimal base images. In Python-based containers, perform the healthcheck using pure python (e.g. `python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"`). In Alpine Nginx containers, use `wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1` instead of `curl`.
 16. Add .env.example comments in compose for env_vars found.
 17. If has_db=true: add appropriate DB service (postgres:16-alpine, mysql:8, mongo:7) to compose.
 18. If has_redis=true: add redis:7-alpine to compose.
 19. For React Native: Dockerfile is for backend only; add a large comment explaining mobile builds use EAS/Fastlane.
+20. If the backend application utilizes packages that require system executables (e.g. GitPython requiring git), you MUST include commands in the backend Dockerfile to install these system dependencies (e.g. apt-get update && apt-get install -y --no-install-recommends git) via the package manager before running the app.
+21. When generating database connection URLs for PostgreSQL using SQLAlchemy, always use the `postgresql://` dialect prefix scheme instead of the deprecated and unsupported `postgres://` scheme.
 {k8s_manifest_rules}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 GITHUB ACTIONS RULES
