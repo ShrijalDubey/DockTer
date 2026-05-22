@@ -294,14 +294,20 @@ def _apply_framework_hints(text_lower: str, context: dict, filename: str = ""):
             continue
         if name in context["frameworks"]:
             continue
-        # Apply language-gated rules
-        if key in GO_ONLY      and not is_go_file:      continue
-        if key in RUST_ONLY    and not is_rust_file:    continue
-        if key in RUBY_ONLY    and not is_ruby_file:    continue
-        if key in PHP_ONLY     and not is_php_file:     continue
-        if key in JVM_ONLY     and not is_jvm_file:     continue
-        if key in ELIXIR_ONLY  and not is_elixir_file:  continue
-        if key in HASKELL_ONLY and not is_haskell_file: continue
+        if key in GO_ONLY and not is_go_file:
+            continue
+        if key in RUST_ONLY and not is_rust_file:
+            continue
+        if key in RUBY_ONLY and not is_ruby_file:
+            continue
+        if key in PHP_ONLY and not is_php_file:
+            continue
+        if key in JVM_ONLY and not is_jvm_file:
+            continue
+        if key in ELIXIR_ONLY and not is_elixir_file:
+            continue
+        if key in HASKELL_ONLY and not is_haskell_file:
+            continue
         context["frameworks"].append(name)
 
 
@@ -340,4 +346,4 @@ def _detect_test_frameworks(text_lower: str, context: dict):
     }
     for key, name in TEST_FW.items():
         if key in text_lower and name not in context["test_frameworks"]:
-            context["test_frameworks"].append(name)
+            context["test_frameworks"].append(name)

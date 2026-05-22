@@ -147,7 +147,7 @@ DOCKER FILE RULES (apply to ALL stacks)
 19. For React Native: Dockerfile is for backend only; add a large comment explaining mobile builds use EAS/Fastlane.
 20. If the backend application utilizes packages that require system executables (e.g. GitPython requiring git), you MUST include commands in the backend Dockerfile to install these system dependencies (e.g. apt-get update && apt-get install -y --no-install-recommends git) via the package manager before running the app.
 21. When generating database connection URLs for PostgreSQL using SQLAlchemy, always use the `postgresql://` dialect prefix scheme instead of the deprecated and unsupported `postgres://` scheme.
-22. If a Python backend or worker is used, you MUST generate a corresponding '.flake8' configuration file under the key ".flake8" which ignores cosmetic/style-only check failures (e.g. ignore E501, E302, E303, W291, W293, E305, E261, E127, E221, E272, E701, F401, E402, F541, W391, E301) and excludes standard build, virtualenv, and package directories.
+22. If a Python backend or worker is used, you MUST generate a corresponding '.flake8' configuration file under the key ".flake8" which ignores cosmetic/style-only check failures (e.g. ignore E501, E302, E303, W291, W293, E305, E261, E127, E221, E272, E701, F401, E402, F541, W391, E301, E241, W292, E226) and excludes standard build, virtualenv, and package directories.
 {k8s_manifest_rules}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 GITHUB ACTIONS RULES
@@ -162,7 +162,7 @@ Generate a complete GitHub Actions CI/CD workflow with these characteristics:
 - Run test suite if test_frameworks were detected
 - Build Docker image and push to ghcr.io (GitHub Container Registry) in "build" job. You MUST explicitly set "registry: ghcr.io" in the docker/login-action step to prevent it from defaulting to Docker Hub and failing on GITHUB_TOKEN.
 - Use docker/setup-buildx-action and docker/build-push-action
-- Tag image as ghcr.io/${{{{ github.repository }}}}:${{{{ github.sha }}}}
+- You MUST downcase the repository name to lowercase in a step before building (e.g., run: echo "REPO_LC=${{GITHUB_REPOSITORY,,}}" >> ${{GITHUB_ENV}}) and then tag and push the image as ghcr.io/${{{{ env.REPO_LC }}}}:${{{{ github.sha }}}} because GHCR strictly requires lowercase repository names and `${{{{ github.repository }}}}` may contain uppercase letters.
 - For Flutter: use subosito/flutter-action@v2
 - For Spring Boot: use actions/setup-java@v4 with distribution: temurin
 - For .NET: use actions/setup-dotnet@v4
@@ -208,7 +208,7 @@ def _parse_response(raw: str) -> dict:
     end = cleaned.rfind("}")
     if start != -1 and end != -1:
         try:
-            return json.loads(cleaned[start:end+1])
+            return json.loads(cleaned[start:end + 1])
         except json.JSONDecodeError:
             pass
 
@@ -289,4 +289,4 @@ def write_files(output: dict, target_dir: str):
         path = Path(target_dir) / filename
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
-        print(f"  [Created] {filename}")
+        print(f"  [Created] {filename}")
