@@ -23,7 +23,9 @@ origins = [
     "http://localhost:3000",
 ]
 if settings.FRONTEND_URL:
-    origins.append(settings.FRONTEND_URL)
+    url_clean = settings.FRONTEND_URL.rstrip("/")
+    origins.append(url_clean)
+    origins.append(url_clean + "/")
 
 app.add_middleware(
     CORSMiddleware,
