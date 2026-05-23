@@ -165,7 +165,7 @@ Generate a complete, modern, and production-ready GitHub Actions CI/CD workflow:
   * docker/setup-buildx-action@v3
   * docker/login-action@v3
   * docker/build-push-action@v5
-- Caching: Always configure built-in dependency caching on all setup actions (e.g. actions/setup-python@v5 with cache: 'pip' or setup-node@v4 with cache: 'npm') to optimize pipeline execution speed.
+- Caching: Always configure built-in dependency caching on all setup actions (e.g. actions/setup-python@v5 with cache: 'pip' or setup-node@v4 with cache: 'npm') to optimize pipeline execution speed. IMPORTANT: If package or lock files (such as package-lock.json or requirements.txt) are located in subdirectories (like client/ or backend/), you MUST explicitly configure 'cache-dependency-path' (e.g., cache-dependency-path: client/package-lock.json) in the setup action to prevent file-not-found cache errors, and make sure corresponding script steps use 'working-directory' (e.g., working-directory: client) to run in the correct path.
 - Test Suite: Run the test suite if test_frameworks were detected. If tests require databases or external services, define mock/test environment variables (e.g., DATABASE_URL=sqlite:///:memory: or mock settings) within the test step to prevent pipeline crashes.
 - Docker Registry downcasing: GitHub Container Registry (GHCR) strictly requires lowercase repository paths. You MUST add a step to downcase the GITHUB_REPOSITORY string to lowercase in an early step before building:
   * run: echo "REPO_LC=${{GITHUB_REPOSITORY,,}}" >> ${{GITHUB_ENV}}
