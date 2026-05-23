@@ -8,7 +8,10 @@ import './App.module.css';
 
 const AppContent = () => {
   const { loading } = useContext(AuthContext);
-  const [currentView, setCurrentView] = useState('landing'); // 'landing', 'dashboard', 'tutorial'
+  const [currentView, setCurrentView] = useState(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.has('token') ? 'dashboard' : 'landing';
+  }); // 'landing', 'dashboard', 'tutorial'
 
   if (loading) {
     return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>Loading...</div>;
