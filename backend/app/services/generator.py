@@ -152,27 +152,35 @@ DOCKER FILE RULES (apply to ALL stacks)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 GITHUB ACTIONS RULES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Generate a complete GitHub Actions CI/CD workflow with these characteristics:
-- Runner: {runner}
+Generate a complete, modern, and production-ready GitHub Actions CI/CD workflow:
 - File path key in output JSON: ".github/workflows/ci.yml"
+- Runner: {runner}
 - Triggers: push to main/master, pull_request to main/master
 {ci_deploy_instructions}
-- Use correct language setup action for the detected stack (e.g. actions/setup-python, actions/setup-java, etc.)
-- Cache dependencies (pip, npm/yarn, gradle, cargo, go modules, bundler, composer, mix deps, etc.)
-- Run test suite if test_frameworks were detected
-- Build Docker image and push to ghcr.io (GitHub Container Registry) in "build" job. You MUST explicitly set "registry: ghcr.io" in the docker/login-action step to prevent it from defaulting to Docker Hub and failing on GITHUB_TOKEN.
-- Use docker/setup-buildx-action and docker/build-push-action
-- You MUST downcase the repository name to lowercase in a step before building (e.g., run: echo "REPO_LC=${{GITHUB_REPOSITORY,,}}" >> ${{GITHUB_ENV}}) and then tag and push the image as ghcr.io/${{{{ env.REPO_LC }}}}:${{{{ github.sha }}}} because GHCR strictly requires lowercase repository names and `${{{{ github.repository }}}}` may contain uppercase letters.
-- For Flutter: use subosito/flutter-action@v2
-- For Spring Boot: use actions/setup-java@v4 with distribution: temurin
-- For .NET: use actions/setup-dotnet@v4
-- For Rust: use dtolnay/rust-toolchain@stable
-- For Go: use actions/setup-go@v5
-- For PHP: use shivammathur/setup-php@v2
-- For Ruby: use ruby/setup-ruby@v1 with bundler-cache: true
-- For Elixir: use erlef/setup-beam@v1
-- Include GITHUB_TOKEN permissions block
-- Include environment variables section referencing detected env_vars as secrets where sensitive
+- You MUST explicitly include a 'permissions' block at either the workflow level or within jobs containing 'contents: read' and 'packages: write' to guarantee the GITHUB_TOKEN has permission to publish images to GitHub Container Registry (GHCR).
+- Use modern, up-to-date versions of standard GitHub Actions:
+  * actions/checkout@v4
+  * actions/setup-python@v5
+  * actions/setup-node@v4
+  * docker/setup-buildx-action@v3
+  * docker/login-action@v3
+  * docker/build-push-action@v5
+- Caching: Always configure built-in dependency caching on all setup actions (e.g. actions/setup-python@v5 with cache: 'pip' or setup-node@v4 with cache: 'npm') to optimize pipeline execution speed.
+- Test Suite: Run the test suite if test_frameworks were detected. If tests require databases or external services, define mock/test environment variables (e.g., DATABASE_URL=sqlite:///:memory: or mock settings) within the test step to prevent pipeline crashes.
+- Docker Registry downcasing: GitHub Container Registry (GHCR) strictly requires lowercase repository paths. You MUST add a step to downcase the GITHUB_REPOSITORY string to lowercase in an early step before building:
+  * run: echo "REPO_LC=${{GITHUB_REPOSITORY,,}}" >> ${{GITHUB_ENV}}
+- Registry Login: You MUST explicitly set "registry: ghcr.io" in the docker/login-action@v3 step. Use ${{GITHUB_TOKEN}} as the password and ${{github.actor}} as the username.
+- Tagging and Pushing: Build the Docker image and push to ghcr.io using docker/build-push-action@v5. Tag the image as ghcr.io/${{{{ env.REPO_LC }}}}:${{{{ github.sha }}}} to ensure the repository path is entirely lowercase.
+- Stack-specific GHA Setup Actions:
+  * For Flutter: use subosito/flutter-action@v2
+  * For Spring Boot: use actions/setup-java@v4 with distribution: temurin
+  * For .NET: use actions/setup-dotnet@v4
+  * For Rust: use dtolnay/rust-toolchain@stable
+  * For Go: use actions/setup-go@v5
+  * For PHP: use shivammathur/setup-php@v2
+  * For Ruby: use ruby/setup-ruby@v1 with bundler-cache: true
+  * For Elixir: use erlef/setup-beam@v1
+- Environment variables: Include environment variables section referencing detected env_vars as secrets where sensitive.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 OUTPUT FORMAT
