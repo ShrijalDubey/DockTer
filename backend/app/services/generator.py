@@ -157,7 +157,7 @@ Generate a complete, modern, and production-ready GitHub Actions CI/CD workflow:
 - Runner: {runner}
 - Triggers: push to main/master, pull_request to main/master
 {ci_deploy_instructions}
-- You MUST explicitly include a 'permissions' block at either the workflow level or within jobs containing 'contents: read' and 'packages: write' to guarantee the GITHUB_TOKEN has permission to publish images to GitHub Container Registry (GHCR).
+- You MUST explicitly include a top-level workflow-level 'permissions' block (declared right below the 'on' block, above the 'jobs' block) containing 'contents: read' and 'packages: write'. This ensures that the default GITHUB_TOKEN in every job (including the 'test' and 'build' jobs) has both read access to check out repository contents (preventing git fetch/clone auth errors) and write access to publish images to GitHub Container Registry (GHCR).
 - Use modern, up-to-date versions of standard GitHub Actions:
   * actions/checkout@v4
   * actions/setup-python@v5
