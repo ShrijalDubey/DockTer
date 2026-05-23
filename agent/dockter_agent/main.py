@@ -15,7 +15,12 @@ app = FastAPI(
 # Secure CORS configuration: only allow requests from trusted origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://dockter.dev", "http://localhost:5173"],
+    allow_origins=[
+        "https://dockter.dev",
+        "http://localhost:5173",
+        "https://project-dockter.vercel.app",
+        "https://project-dockter.vercel.app/"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
