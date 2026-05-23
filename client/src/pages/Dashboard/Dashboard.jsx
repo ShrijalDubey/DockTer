@@ -7,7 +7,7 @@ import LoadingSection from '../../features/generator/components/LoadingSection';
 import ResultsSection from '../../features/generator/components/ResultsSection';
 import { getLanguageFromFilename } from '../../utils/fileHelpers';
 
-const Dashboard = () => {
+const Dashboard = ({ onNavigate }) => {
   const {
     appState, setAppState,
     inputType, setInputType,
@@ -40,6 +40,7 @@ const Dashboard = () => {
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
         setAppState={setAppState}
         loadProject={loadProject}
+        onNavigate={onNavigate}
       >
         <main className={styles.resultsArea}>
           <LoadingSection styles={styles} />
@@ -55,6 +56,7 @@ const Dashboard = () => {
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
         setAppState={setAppState}
         loadProject={loadProject}
+        onNavigate={onNavigate}
       >
         <main className={styles.resultsArea}>
           <ResultsSection 
@@ -80,6 +82,7 @@ const Dashboard = () => {
       toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
       setAppState={setAppState}
       loadProject={loadProject}
+      onNavigate={onNavigate}
     >
       <main className={styles.mainArea}>
         <UploadSection 

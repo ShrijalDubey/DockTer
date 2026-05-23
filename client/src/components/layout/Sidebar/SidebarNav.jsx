@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../../../context/AuthContext';
 import { fetchProjects, deleteProject } from '../../../services/api';
 
-const SidebarNav = ({ styles, setAppState, loadProject }) => {
+const SidebarNav = ({ styles, setAppState, loadProject, onNavigate }) => {
   const { user, openAuthModal } = useContext(AuthContext);
   const [projects, setProjects] = useState([]);
 
@@ -57,6 +57,27 @@ const SidebarNav = ({ styles, setAppState, loadProject }) => {
         </div>
         <span className={`${styles.navText} ${styles.navTextBold}`}>New Project</span>
       </button>
+
+      {onNavigate && (
+        <button 
+          className={styles.newBtn} 
+          onClick={() => onNavigate('tutorial')}
+          style={{ 
+            marginTop: '0.5rem', 
+            background: 'rgba(139, 92, 246, 0.08)', 
+            borderColor: 'rgba(139, 92, 246, 0.2)',
+          }}
+          title="Setup DockTer Local Companion Agent"
+        >
+          <div className={styles.newIconBg} style={{ background: '#8b5cf6', boxShadow: '0 0 10px rgba(139, 92, 246, 0.4)' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="4 17 10 11 4 5"></polyline>
+              <line x1="12" y1="19" x2="20" y2="19"></line>
+            </svg>
+          </div>
+          <span className={`${styles.navText} ${styles.navTextBold}`} style={{ color: '#c084fc' }}>CLI Agent Guide</span>
+        </button>
+      )}
 
       <div className={styles.recentSection}>
         <div className={styles.sectionTitle}>Recent Projects</div>

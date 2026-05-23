@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SidebarHeader = ({ styles, toggleSidebar }) => {
+const SidebarHeader = ({ styles, toggleSidebar, onNavigate }) => {
   return (
     <div className={styles.header}>
       <button onClick={toggleSidebar} className={styles.toggleBtn} title="Toggle Sidebar">
@@ -10,7 +10,12 @@ const SidebarHeader = ({ styles, toggleSidebar }) => {
         </svg>
       </button>
 
-      <div className={styles.logoWrap}>
+      <div 
+        className={styles.logoWrap} 
+        onClick={() => onNavigate && onNavigate('landing')}
+        style={{ cursor: onNavigate ? 'pointer' : 'default' }}
+        title={onNavigate ? "Back to Landing Page" : ""}
+      >
         <span className={styles.logoText}>DockTer</span>
       </div>
     </div>

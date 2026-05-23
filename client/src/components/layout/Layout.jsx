@@ -1,7 +1,7 @@
 import React from 'react';
 import Sidebar from './Sidebar/Sidebar';
 
-const Layout = ({ children, isSidebarOpen, toggleSidebar, setAppState, loadProject }) => {
+const Layout = ({ children, isSidebarOpen, toggleSidebar, setAppState, loadProject, onNavigate }) => {
   return (
     <div style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden', background: 'var(--bg-main)' }}>
       <Sidebar 
@@ -9,6 +9,7 @@ const Layout = ({ children, isSidebarOpen, toggleSidebar, setAppState, loadProje
         toggleSidebar={toggleSidebar} 
         setAppState={setAppState}
         loadProject={loadProject}
+        onNavigate={onNavigate}
       />
       <div 
         style={{ 

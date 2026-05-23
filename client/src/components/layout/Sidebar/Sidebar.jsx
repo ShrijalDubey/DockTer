@@ -4,12 +4,12 @@ import SidebarHeader from './SidebarHeader';
 import SidebarNav from './SidebarNav';
 import SidebarFooter from './SidebarFooter';
 
-const Sidebar = ({ isOpen, toggleSidebar, setAppState, loadProject }) => {
+const Sidebar = ({ isOpen, toggleSidebar, setAppState, loadProject, onNavigate }) => {
   return (
     <aside className={`${styles.sidebar} ${isOpen ? '' : styles.collapsed}`}>
       <div className={styles.sidebarInner}>
-        <SidebarHeader styles={styles} toggleSidebar={toggleSidebar} />
-        <SidebarNav styles={styles} setAppState={setAppState} loadProject={loadProject} />
+        <SidebarHeader styles={styles} toggleSidebar={toggleSidebar} onNavigate={onNavigate} />
+        <SidebarNav styles={styles} setAppState={setAppState} loadProject={loadProject} onNavigate={onNavigate} />
         <SidebarFooter styles={styles} />
       </div>
     </aside>
