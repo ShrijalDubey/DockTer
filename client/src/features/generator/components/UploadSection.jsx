@@ -38,7 +38,10 @@ const UploadSection = ({
 
       <div className={styles.uploadContainer}>
         <h1 className={styles.headline}>Generate Production-Ready<span style={{ color: '#147eef' }}> Docker Environments </span> in Seconds</h1>
-        <p className={styles.subline}>Automatically containerize your codebase. Drop a GitHub link or source archive below to instantly generate optimal Docker configurations.</p>
+        <p className={styles.subline}>
+          <span className={styles.desktopText}>Automatically containerize your codebase. Drop a GitHub link or source archive below to instantly generate optimal Docker configurations.</span>
+          <span className={styles.mobileText}>Containerize codebases instantly. Drop a link or ZIP archive below to generate optimal Docker configurations.</span>
+        </p>
 
         <div className={styles.cardsRow}>
           <div className={styles.uploadCard}>
@@ -47,7 +50,10 @@ const UploadSection = ({
             <div className={styles.dropContent} style={{ pointerEvents: 'auto', marginBottom: '-1rem' }}>
               <svg className={styles.uploadIcon} width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
               <div className={styles.dropTitle}>Link a Repository</div>
-              <div className={styles.dropSub}>Paste your GitHub URL for instant analysis</div>
+              <div className={styles.dropSub}>
+                <span className={styles.desktopText}>Paste your GitHub URL for instant analysis</span>
+                <span className={styles.mobileText}>Paste a GitHub URL to start</span>
+              </div>
             </div>
 
             <div className={styles.urlInputWrap}>
@@ -88,8 +94,14 @@ const UploadSection = ({
             <div className={styles.cardLabel}>From Source Archive</div>
             <div className={styles.dropContent}>
               <svg className={styles.uploadIcon} width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-              <div className={styles.dropTitle}>Drop your ZIP archive here</div>
-              <div className={styles.dropSub}>or click to browse filesystem</div>
+              <div className={styles.dropTitle}>
+                <span className={styles.desktopText}>Drop your ZIP archive here</span>
+                <span className={styles.mobileText}>Upload a ZIP Archive</span>
+              </div>
+              <div className={styles.dropSub}>
+                <span className={styles.desktopText}>or click to browse filesystem</span>
+                <span className={styles.mobileText}>or tap to select archive</span>
+              </div>
             </div>
           </div>
         </div>

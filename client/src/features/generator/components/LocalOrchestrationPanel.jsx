@@ -53,27 +53,35 @@ const LocalOrchestrationPanel = ({
               <div className={styles.stepItem}>
                 <span className={styles.stepNumber}>1</span>
                 <div className={styles.stepText}>
-                  <strong>Docker Desktop:</strong> Ensure Docker is running in the background.
+                  <strong>Docker Desktop:</strong> <span className={styles.desktopText}>Ensure Docker is running in the background.</span><span className={styles.mobileText}>Ensure Docker is active.</span>
                 </div>
               </div>
               <div className={styles.stepItem}>
                 <span className={styles.stepNumber}>2</span>
                 <div className={styles.stepText}>
-                  <strong>Start Local Companion:</strong> Launch the agent in your terminal to activate loopback container bindings:
-                  <div style={{ marginTop: '0.5rem', color: 'var(--text-primary)', fontWeight: '600', fontSize: '0.75rem' }}>Option A: PyPI Registry</div>
-                  <div className={styles.agentCodeBlock}>
-                    uvx --from dockter-agent dockter-agent start
-                  </div>
-                  <div style={{ marginTop: '0.5rem', color: 'var(--text-primary)', fontWeight: '600', fontSize: '0.75rem' }}>Option B: Cloned Local Repository</div>
-                  <div className={styles.agentCodeBlock}>
-                    uvx --from ./agent dockter-agent start
-                  </div>
+                  <span className={styles.desktopText}>
+                    <strong>Start Local Companion:</strong> Launch the agent in your terminal to activate loopback container bindings:
+                    <div style={{ marginTop: '0.5rem', color: 'var(--text-primary)', fontWeight: '600', fontSize: '0.75rem' }}>Option A: PyPI Registry</div>
+                    <div className={styles.agentCodeBlock}>
+                      uvx --from dockter-agent dockter-agent start
+                    </div>
+                    <div style={{ marginTop: '0.5rem', color: 'var(--text-primary)', fontWeight: '600', fontSize: '0.75rem' }}>Option B: Cloned Local Repository</div>
+                    <div className={styles.agentCodeBlock}>
+                      uvx --from ./agent dockter-agent start
+                    </div>
+                  </span>
+                  <span className={styles.mobileText}>
+                    <strong>Start Companion Agent:</strong> Run the agent in your terminal:
+                    <div className={styles.agentCodeBlock} style={{ fontSize: '0.725rem', padding: '0.4rem', marginTop: '0.35rem' }}>
+                      uvx --from dockter-agent dockter-agent start
+                    </div>
+                  </span>
                 </div>
               </div>
               <div className={styles.stepItem}>
                 <span className={styles.stepNumber}>3</span>
                 <div className={styles.stepText}>
-                  <strong>One-Click Deploy:</strong> Once the status above glows <span className={styles.inlineConnected}>● Connected</span>, click the deploy button to orchestrate and stream container compilation logs live!
+                  <strong>One-Click Deploy:</strong> <span className={styles.desktopText}>Once the status above glows <span className={styles.inlineConnected}>● Connected</span>, click the deploy button to orchestrate and stream container compilation logs live!</span><span className={styles.mobileText}>Tapping Deploy starts orchestration and streams build logs live.</span>
                 </div>
               </div>
             </div>

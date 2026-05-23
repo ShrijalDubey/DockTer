@@ -61,21 +61,21 @@ const SidebarNav = ({ styles, setAppState, loadProject, onNavigate }) => {
       {onNavigate && (
         <button 
           className={styles.newBtn} 
-          onClick={() => onNavigate('tutorial')}
+          onClick={() => onNavigate('landing')}
           style={{ 
             marginTop: '0.5rem', 
-            background: 'rgba(139, 92, 246, 0.08)', 
-            borderColor: 'rgba(139, 92, 246, 0.2)',
+            background: 'rgba(255, 255, 255, 0.03)', 
+            borderColor: 'rgba(255, 255, 255, 0.08)',
           }}
-          title="Setup DockTer Local Companion Agent"
+          title="Go back to Landing Page"
         >
-          <div className={styles.newIconBg} style={{ background: '#8b5cf6', boxShadow: '0 0 10px rgba(139, 92, 246, 0.4)' }}>
+          <div className={styles.newIconBg} style={{ background: 'rgba(255, 255, 255, 0.05)' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="4 17 10 11 4 5"></polyline>
-              <line x1="12" y1="19" x2="20" y2="19"></line>
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
           </div>
-          <span className={`${styles.navText} ${styles.navTextBold}`} style={{ color: '#c084fc' }}>CLI Agent Guide</span>
+          <span className={`${styles.navText} ${styles.navTextBold}`}>Back to Home</span>
         </button>
       )}
 

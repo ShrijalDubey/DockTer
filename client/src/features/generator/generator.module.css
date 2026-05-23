@@ -1,3 +1,10 @@
+.mobileText {
+  display: none !important;
+}
+.desktopText {
+  display: unset;
+}
+
 .mainArea,
 .resultsArea {
   width: 100%;
@@ -1074,4 +1081,130 @@
   color: #10b981;
   font-weight: 600;
   text-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+/* Premium Dashboard Responsive Mobile Layouts */
+@media (max-width: 768px) {
+  .mainArea,
+  .resultsArea {
+    padding: 1rem;
+    padding-top: 4.5rem; /* Safe padding beneath mobile hamburger icon */
+    height: auto;
+    min-height: 100vh;
+  }
+  .headline {
+    font-size: 1.65rem;
+    line-height: 1.25;
+    margin-bottom: 1.25rem;
+    padding: 0 0.5rem;
+  }
+  .subline {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin-bottom: 1.75rem;
+    padding: 0 0.5rem;
+  }
+  .cardsRow {
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .uploadCard {
+    padding: 2.25rem 1.5rem;
+    min-height: auto;
+    gap: 1.25rem;
+  }
+  .divider {
+    margin: 0.25rem 0;
+  }
+  .resultsHeader {
+    position: absolute;
+    top: 1rem;
+    left: 4.25rem;
+    margin-bottom: 0;
+    height: 40px;
+    width: auto;
+    display: flex;
+    align-items: center;
+    z-index: 97;
+    padding: 0;
+  }
+  .backBtn {
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    border-radius: 8px;
+    background: rgba(15, 15, 20, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    padding: 0;
+  }
+  .projectName {
+    font-size: 1.15rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100vw - 180px); /* prevent project name from pushing buttons offscreen */
+  }
+  .panelsContainer {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .leftPanel {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .fileTree {
+    padding: 1rem;
+    gap: 1.25rem;
+    max-height: 380px; /* Restrict height on phone to prevent endless scroll */
+  }
+  .rightPanel {
+    width: 100% !important;
+    min-height: 400px;
+    height: 55vh !important;
+  }
+  .codeHeader {
+    height: 46px;
+  }
+  .codeTabActive {
+    font-size: 0.85rem;
+    padding: 0 1rem;
+  }
+  .copyBtn {
+    padding: 0.35rem 0.85rem;
+    font-size: 0.8rem;
+    margin-right: 0.5rem;
+  }
+  .errorBanner {
+    top: 4.5rem;
+    width: 95%;
+    padding: 0.75rem 1rem;
+  }
+  .desktopText {
+    display: none !important;
+  }
+  .mobileText {
+    display: unset !important;
+  }
+  .treeFolder {
+    font-size: 0.92rem;
+  }
+  .fileItem {
+    font-size: 0.88rem;
+    padding: 0.4rem 0.5rem;
+  }
+  .tweakSelect,
+  .tweakSwitchLabel,
+  .tweakBtn,
+  .orchestrateBtn {
+    font-size: 0.85rem;
+  }
+  .agentInstruction,
+  .stepText {
+    font-size: 0.8rem;
+  }
 }
