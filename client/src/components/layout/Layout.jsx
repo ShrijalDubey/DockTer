@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar/Sidebar';
 
-const Layout = ({ children, isSidebarOpen, toggleSidebar, setAppState, loadProject, onNavigate }) => {
+const Layout = ({ children, isSidebarOpen, toggleSidebar, closeSidebar, setAppState, loadProject, onNavigate }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
@@ -15,6 +15,7 @@ const Layout = ({ children, isSidebarOpen, toggleSidebar, setAppState, loadProje
       <Sidebar 
         isOpen={isSidebarOpen} 
         toggleSidebar={toggleSidebar} 
+        closeSidebar={closeSidebar}
         setAppState={setAppState}
         loadProject={loadProject}
         onNavigate={onNavigate}

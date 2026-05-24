@@ -207,3 +207,29 @@
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+@media (max-width: 576px) {
+  .authCard {
+    padding: 28px 24px;
+    max-width: calc(100vw - 2rem);
+    margin: 0 1rem;
+    gap: 20px;
+    border-radius: 14px;
+  }
+  .title {
+    font-size: 20px;
+  }
+  .subtitle {
+    font-size: 13px;
+  }
+  .githubBtn {
+    padding: 11px;
+    font-size: 13.5px;
+    border-radius: 8px;
+  }
+  .closeBtn {
+    top: 12px;
+    right: 12px;
+    font-size: 20px;
+  }
+}

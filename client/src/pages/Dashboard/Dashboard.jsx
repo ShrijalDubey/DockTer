@@ -38,6 +38,7 @@ const Dashboard = ({ onNavigate }) => {
       <Layout 
         isSidebarOpen={isSidebarOpen} 
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+        closeSidebar={() => setIsSidebarOpen(false)}
         setAppState={setAppState}
         loadProject={loadProject}
         onNavigate={onNavigate}
@@ -54,6 +55,7 @@ const Dashboard = ({ onNavigate }) => {
       <Layout 
         isSidebarOpen={isSidebarOpen} 
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+        closeSidebar={() => setIsSidebarOpen(false)}
         setAppState={setAppState}
         loadProject={loadProject}
         onNavigate={onNavigate}
@@ -80,6 +82,7 @@ const Dashboard = ({ onNavigate }) => {
     <Layout 
       isSidebarOpen={isSidebarOpen} 
       toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+      closeSidebar={() => setIsSidebarOpen(false)}
       setAppState={setAppState}
       loadProject={loadProject}
       onNavigate={onNavigate}

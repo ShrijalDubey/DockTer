@@ -34,6 +34,9 @@ const ResultsSection = ({
   const [activeEventSource, setActiveEventSource] = useState(null);
   const [showQuickstart, setShowQuickstart] = useState(false);
 
+  // Mobile tab state: 'files' or 'editor'
+  const [mobileTab, setMobileTab] = useState('files');
+
   const consoleEndRef = useRef(null);
 
   // Probes local agent every 5s in the background
@@ -154,6 +157,12 @@ const ResultsSection = ({
     }
   };
 
+  // When a file is selected, auto-switch to editor tab on mobile
+  const handleFileSelect = (file) => {
+    setSelectedFile(file);
+    setMobileTab('editor');
+  };
+
   const fileContent = result.files[selectedFile] || '';
   const language = getLanguageFromFilename(selectedFile);
 
@@ -164,17 +173,40 @@ const ResultsSection = ({
           <button className={styles.backBtn} onClick={() => setAppState('upload')}>←</button>
           <h2 className={styles.projectName}>{result.project_name}</h2>
         </div>
+        {/* Compact download button visible only on mobile */}
+        <button className={styles.downloadBtnMobile} onClick={handleDownloadAll} title="Download Config">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
+      </div>
+
+      {/* Mobile Tab Switcher — hidden on desktop */}
+      <div className={styles.mobileTabBar}>
+        <button 
+          className={`${styles.mobileTabBtn} ${mobileTab === 'files' ? styles.mobileTabBtnActive : ''}`}
+          onClick={() => setMobileTab('files')}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          Files
+        </button>
+        <button 
+          className={`${styles.mobileTabBtn} ${mobileTab === 'editor' ? styles.mobileTabBtnActive : ''}`}
+          onClick={() => setMobileTab('editor')}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+          Editor
+        </button>
       </div>
 
       <div className={styles.panelsContainer}>
-        <div className={styles.leftPanel}>
+        {/* Left Panel: wrapped with mobile-tab visibility class */}
+        <div className={`${styles.leftPanel} ${mobileTab === 'files' ? styles.mobilePanelActive : styles.mobilePanelHidden}`}>
 
           <div className={styles.fileTree}>
             <FileSidebarList
               styles={styles}
               result={result}
               selectedFile={selectedFile}
-              setSelectedFile={setSelectedFile}
+              setSelectedFile={handleFileSelect}
             />
 
             <TechStackBadges
@@ -213,9 +245,21 @@ const ResultsSection = ({
           </div>
         </div>
 
-        <div className={styles.rightPanel}>
+        {/* Right Panel: wrapped with mobile-tab visibility class */}
+        <div className={`${styles.rightPanel} ${mobileTab === 'editor' ? styles.mobilePanelActive : styles.mobilePanelHidden}`}>
           <div className={styles.codeHeader}>
             <div className={styles.codeTabs}>
+              <button 
+                className={styles.editorBackBtn}
+                onClick={() => setMobileTab('files')}
+                title="Back to file list"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.1rem' }}>
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Files
+              </button>
               <div className={styles.codeTabActive}>{selectedFile}</div>
             </div>
             <button className={styles.copyBtn} onClick={handleCopy}>
