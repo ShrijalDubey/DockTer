@@ -11,6 +11,23 @@ import git
 
 router = APIRouter(prefix="/analyze", tags=["analyze"])
 
+def secure_extract_zip(zip_path: str, extract_dir: str, max_size_mb: int = 100):
+    max_bytes = max_size_mb * 1024 * 1024
+    total_uncompressed_size = 0
+    
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        base_path = os.path.abspath(extract_dir)
+        for member in zip_ref.infolist():
+            total_uncompressed_size += member.file_size
+            if total_uncompressed_size > max_bytes:
+                raise HTTPException(status_code=400, detail="Decompressed archive exceeds maximum allowed size (100MB)")
+                
+            target_path = os.path.abspath(os.path.join(extract_dir, member.filename))
+            if not target_path.startswith(base_path):
+                raise HTTPException(status_code=400, detail="Malicious path traversal detected inside archive")
+                
+            zip_ref.extract(member, extract_dir)
+
 @router.post("/direct")
 async def analyze_direct(
     file: UploadFile = File(...)
@@ -28,8 +45,7 @@ async def analyze_direct(
         extract_dir = os.path.join(temp_dir, "extracted")
         os.makedirs(extract_dir, exist_ok=True)
         
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(extract_dir)
+        secure_extract_zip(zip_path, extract_dir)
 
         # Analyze
         context = analyze_project(extract_dir)
@@ -59,8 +75,7 @@ async def analyze_upload(
         extract_dir = os.path.join(temp_dir, "extracted")
         os.makedirs(extract_dir, exist_ok=True)
         
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(extract_dir)
+        secure_extract_zip(zip_path, extract_dir)
 
         # Analyze
         context = analyze_project(extract_dir)

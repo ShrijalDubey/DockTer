@@ -8,6 +8,48 @@ import uvicorn
 import requests
 from dockter_agent.main import app
 
+# ========================================================
+# 🎨 PREMIUM TERMINAL STYLE PALETTE & HELPERS
+# ========================================================
+C_CYAN = "\033[38;5;39m"       # Vibrant Blue/Cyan
+C_MAGENTA = "\033[38;5;170m"   # Bright Magenta/Purple
+C_GREEN = "\033[38;5;78m"      # Fresh Green
+C_YELLOW = "\033[38;5;220m"    # Gold Yellow
+C_RED = "\033[38;5;196m"       # Deep Red
+C_GRAY = "\033[38;5;244m"      # Dim Gray
+C_BOLD = "\033[1m"
+C_RESET = "\033[0m"
+
+def safe_print(msg):
+    try:
+        print(msg)
+    except UnicodeEncodeError:
+        encoding = sys.stdout.encoding or 'utf-8'
+        try:
+            print(msg.encode(encoding, errors='replace').decode(encoding))
+        except Exception:
+            # Absolute fallback
+            print(msg.encode('ascii', errors='ignore').decode('ascii'))
+
+def print_logo():
+    safe_print(f"\n{C_CYAN}{C_BOLD}[DockTer CLI] — AI Container Orchestration Engine{C_RESET}")
+    safe_print(f"{C_GRAY}========================================================{C_RESET}")
+
+def print_info(msg):
+    safe_print(f"  {C_CYAN}[i]{C_RESET} {msg}")
+
+def print_success(msg):
+    safe_print(f"  {C_GREEN}[+]{C_RESET} {msg}")
+
+def print_warning(msg):
+    safe_print(f"  {C_YELLOW}[!]{C_RESET} {msg}")
+
+def print_error(msg):
+    safe_print(f"  {C_RED}[x]{C_RESET} {msg}")
+
+def print_step(step, total, msg):
+    safe_print(f"\n{C_GRAY}[{step}/{total}]{C_RESET} {C_BOLD}{C_MAGENTA}>>{C_RESET} {C_BOLD}{msg}{C_RESET}")
+
 def should_ignore(path, cwd):
     rel_path = os.path.relpath(path, cwd)
     parts = rel_path.split(os.sep)
@@ -22,10 +64,12 @@ def should_ignore(path, cwd):
             return True
         if part.endswith(".zip"):
             return True
+        if part.startswith(".env"):
+            return True
     return False
 
 def zip_project(cwd):
-    print("  -> Compressing active working directory...")
+    print_info("Compressing active working directory...")
     temp_zip = tempfile.NamedTemporaryFile(suffix=".zip", delete=False)
     temp_zip_name = temp_zip.name
     temp_zip.close()
@@ -42,7 +86,7 @@ def zip_project(cwd):
                         arcname = os.path.relpath(file_path, cwd)
                         zip_file.write(file_path, arcname)
                         file_count += 1
-        print(f"  -> Successfully packaged {file_count} project files.")
+        print_success(f"Successfully packaged {C_BOLD}{file_count}{C_RESET} project files.")
         return temp_zip_name
     except Exception as e:
         if os.path.exists(temp_zip_name):
@@ -77,29 +121,29 @@ def _get_compose_cmd():
 
 def run_scan(args):
     cwd = os.getcwd()
-    print("\n========================================================")
-    print("      DockTer CLI Engine -- Codebase Scanner & Generator")
-    print("========================================================\n")
-    print(f"[!] Target Directory: {cwd}")
+    print_logo()
+    print_info(f"Target Directory: {C_BOLD}{cwd}{C_RESET}")
     
     backend_url = args.backend_url.rstrip('/')
     
     zip_path = None
     try:
+        print_step(1, 4, "Packaging & Compressing project codebase")
         zip_path = zip_project(cwd)
         
         # 1. Post to analyze endpoint
-        print(f"[!] Uploading package to analyze API ({backend_url}/api/analyze/direct) ...")
+        print_step(2, 4, f"Uploading package for static analysis")
+        print_info(f"Target Service: {C_GRAY}{backend_url}/api/analyze/direct{C_RESET}")
         with open(zip_path, 'rb') as f:
             files = {'file': (os.path.basename(zip_path), f, 'application/zip')}
             response = requests.post(f"{backend_url}/api/analyze/direct", files=files, timeout=60)
             
         if response.status_code != 200:
-            print(f"[Error] Codebase analysis failed (HTTP {response.status_code}): {response.text}")
+            print_error(f"Codebase analysis failed (HTTP {response.status_code}): {response.text}")
             return
             
         context = response.json()
-        print("[+] Codebase static analysis completed successfully!")
+        print_success("Codebase static analysis completed successfully!")
         
         # 2. Prepare preferences and post to generate endpoint
         base_img = "default"
@@ -120,20 +164,19 @@ def run_scan(args):
             "preferences": preferences
         }
         
-        print(f"[!] Requesting configuration generation from API ({backend_url}/api/generate/direct) ...")
+        print_step(3, 4, "Requesting custom configuration synthesis from AI Core")
+        print_info(f"Target Service: {C_GRAY}{backend_url}/api/generate/direct{C_RESET}")
         gen_response = requests.post(f"{backend_url}/api/generate/direct", json=payload, timeout=60)
         
         if gen_response.status_code != 200:
-            print(f"[Error] Configuration generation failed (HTTP {gen_response.status_code}): {gen_response.text}")
+            print_error(f"Configuration generation failed (HTTP {gen_response.status_code}): {gen_response.text}")
             return
             
         generated_files = gen_response.json()
-        print("[+] Configurations generated successfully!\n")
+        print_success("Configurations generated successfully!")
         
         # 3. Write files to working directory
-        print("--------------------------------------------------------")
-        print(" WRITING FILES TO FILESYSTEM")
-        print("--------------------------------------------------------")
+        print_step(4, 4, "Writing newly synthesized configurations to filesystem")
         
         for rel_filename, content in generated_files.items():
             file_dest = os.path.abspath(os.path.join(cwd, rel_filename))
@@ -144,17 +187,17 @@ def run_scan(args):
             with open(file_dest, "w", encoding="utf-8") as out_f:
                 out_f.write(content)
             
-            print(f"  + Created: {rel_filename}")
+            safe_print(f"    {C_GRAY}+ Created:{C_RESET} {C_BOLD}{rel_filename}{C_RESET}")
             
-        print("\n========================================================")
-        print(" SUCCESS: Files written directly to your project!")
-        print("========================================================\n")
-        print("Next steps:")
-        print("  * Run 'dockter-agent deploy' to orchestrate your application.")
-        print("  * Inspect your new configuration files locally.")
+        safe_print(f"\n{C_GREEN}{C_BOLD}========================================================{C_RESET}")
+        safe_print(f"{C_GREEN}{C_BOLD}   SUCCESS: Files written directly to your project!{C_RESET}")
+        safe_print(f"{C_GREEN}{C_BOLD}========================================================{C_RESET}\n")
+        safe_print(f"{C_BOLD}Next steps:{C_RESET}")
+        safe_print(f"  {C_CYAN}->{C_RESET} Run {C_BOLD}dockter-agent deploy{C_RESET} to orchestrate your application.")
+        safe_print(f"  {C_CYAN}->{C_RESET} Inspect your new configuration files locally.\n")
         
     except Exception as e:
-        print(f"[Error] Scanner execution failed: {e}")
+        print_error(f"Scanner execution failed: {e}")
     finally:
         if zip_path and os.path.exists(zip_path):
             try:
@@ -164,11 +207,9 @@ def run_scan(args):
 
 def run_deploy(args):
     cwd = os.getcwd()
-    print("\n========================================================")
-    print("      DockTer CLI Engine -- Local Container Orchestrator")
-    print("========================================================\n")
-    print(f"[!] Active Deployment Target: {args.target.upper()}")
-    print(f"[!] Context Directory: {cwd}\n")
+    print_logo()
+    print_info(f"Active Deployment Target: {C_BOLD}{args.target.upper()}{C_RESET}")
+    print_info(f"Context Directory: {C_BOLD}{cwd}{C_RESET}")
     
     if args.target == "compose":
         compose_file = os.path.join(cwd, "docker-compose.yml")
@@ -176,64 +217,64 @@ def run_deploy(args):
             compose_file = os.path.join(cwd, "docker-compose.yaml")
             
         if not os.path.exists(compose_file):
-            print("[Error] No docker-compose.yml file found in the active workspace.")
-            print("        Please run 'dockter-agent scan' first to generate configurations.")
+            print_error("No docker-compose.yml file found in the active workspace.")
+            print_warning("Please run 'dockter-agent scan' first to generate configurations.")
             return
             
         cmd = _get_compose_cmd()
         full_cmd = cmd + ["up", "--build"]
-        print(f"[!] Running command: {' '.join(full_cmd)}")
-        print("[!] Connecting to logs stream. Press Ctrl+C to stop...\n")
+        print_info(f"Executing command: {C_BOLD}{' '.join(full_cmd)}{C_RESET}")
+        print_info("Connecting to log stream. Press Ctrl+C to stop...\n")
         
         try:
             subprocess.run(full_cmd, cwd=cwd, check=True)
         except KeyboardInterrupt:
-            print("\n[!] Orchestration interrupted by user.")
+            print_warning("Orchestration interrupted by user.")
         except subprocess.CalledProcessError as e:
-            print(f"\n[Error] Docker Compose orchestration exited with code {e.returncode}")
+            print_error(f"Docker Compose orchestration exited with code {e.returncode}")
         except Exception as e:
-            print(f"\n[Error] Execution failed: {e}")
+            print_error(f"Execution failed: {e}")
             
     elif args.target == "kubernetes":
         k8s_dir = os.path.join(cwd, "k8s")
         if not os.path.exists(k8s_dir):
-            print("[Error] No 'k8s' directory found in the active workspace.")
-            print("        Please run 'dockter-agent scan --target kubernetes' first.")
+            print_error("No 'k8s' directory found in the active workspace.")
+            print_warning("Please run 'dockter-agent scan --target kubernetes' first.")
             return
             
         # Verify kubectl availability
         try:
             subprocess.run(["kubectl", "version", "--client"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
         except Exception:
-            print("[Error] 'kubectl' client is not installed or not in system PATH.")
-            print("        Please install kubectl or ensure it is running.")
+            print_error("'kubectl' client is not installed or not in system PATH.")
+            print_warning("Please install kubectl or ensure it is running.")
             return
             
         # Verify cluster connection
         try:
-            print("[!] Verifying Kubernetes cluster connection...")
+            print_info("Verifying Kubernetes cluster connection...")
             subprocess.run(["kubectl", "cluster-info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True, timeout=5)
-            print("[+] Connected to Kubernetes cluster successfully.")
+            print_success("Connected to Kubernetes cluster successfully.")
         except Exception:
-            print("[Error] Could not connect to Kubernetes cluster.")
-            print("        Please check your cluster context using 'kubectl config get-contexts'.")
+            print_error("Could not connect to Kubernetes cluster.")
+            print_warning("Please check your cluster context using 'kubectl config get-contexts'.")
             return
             
         full_cmd = ["kubectl", "apply", "-f", "k8s/"]
-        print(f"[!] Running command: {' '.join(full_cmd)}")
+        print_info(f"Executing command: {C_BOLD}{' '.join(full_cmd)}{C_RESET}")
         
         try:
             subprocess.run(full_cmd, cwd=cwd, check=True)
-            print("\n========================================================")
-            print(" SUCCESS: Kubernetes resources deployed successfully!")
-            print("========================================================\n")
-            print("Useful commands:")
-            print("  * kubectl get pods")
-            print("  * kubectl get services")
+            safe_print(f"\n{C_GREEN}{C_BOLD}========================================================{C_RESET}")
+            safe_print(f"{C_GREEN}{C_BOLD}   SUCCESS: Kubernetes resources deployed successfully!{C_RESET}")
+            safe_print(f"{C_GREEN}{C_BOLD}========================================================{C_RESET}\n")
+            safe_print(f"{C_BOLD}Useful commands:{C_RESET}")
+            safe_print(f"  {C_CYAN}->{C_RESET} {C_BOLD}kubectl get pods{C_RESET}")
+            safe_print(f"  {C_CYAN}->{C_RESET} {C_BOLD}kubectl get services{C_RESET}\n")
         except subprocess.CalledProcessError as e:
-            print(f"\n[Error] Kubernetes deployment exited with code {e.returncode}")
+            print_error(f"Kubernetes deployment exited with code {e.returncode}")
         except Exception as e:
-            print(f"\n[Error] Execution failed: {e}")
+            print_error(f"Execution failed: {e}")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -287,8 +328,8 @@ def main():
     scan_parser.add_argument(
         "--backend-url",
         type=str,
-        default="http://localhost:8000",
-        help="Full URL of the backend API service (default: http://localhost:8000)"
+        default=os.getenv("DOCKTER_BACKEND_URL", "https://dockter-backend.onrender.com"),
+        help="Full URL of the backend API service (defaults to production, override with DOCKTER_BACKEND_URL)"
     )
 
     # 3. 'deploy' command to orchestrate containers/k8s
@@ -306,9 +347,10 @@ def main():
     args = parser.parse_args()
 
     if args.command == "start":
-        print("[DockTer] Local Agent Command Line Interface")
-        print("[Secure] CORS protection enabled for trusted client origins.")
-        print(f"[Server] Starting agent server on http://127.0.0.1:{args.port} ...\n")
+        print_logo()
+        print_success("Local Companion Agent Initiated")
+        print_info("CORS Sandbox security bound to trusted origins.")
+        print_info(f"Starting server on {C_BOLD}http://127.0.0.1:{args.port}{C_RESET} ...\n")
         uvicorn.run(app, host="127.0.0.1", port=args.port, log_level="info")
         
     elif args.command == "scan":
