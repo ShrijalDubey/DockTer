@@ -1092,8 +1092,7 @@
 /* Premium Dashboard Responsive Mobile Layouts */
 @media (max-width: 768px) {
   .mainArea {
-    padding: 1rem;
-    padding-top: 4.5rem;
+    padding: 5.5rem 1rem 3rem 1rem !important;
     height: 100vh !important;
     overflow-y: auto !important;
     display: flex;
@@ -1101,8 +1100,7 @@
     box-sizing: border-box;
   }
   .resultsArea {
-    padding: 1rem;
-    padding-top: 4.5rem; /* Safe padding beneath mobile hamburger icon */
+    padding: 5.5rem 1rem 3rem 1rem !important; /* Safe padding beneath mobile hamburger icon and above bottom browser UI */
     height: 100vh !important;
     overflow: hidden !important;
     display: flex;
@@ -1197,7 +1195,7 @@
     flex: 1 !important;
     min-height: 0 !important;
     overflow-y: auto !important;
-    padding: 1rem;
+    padding: 1rem 1rem 3rem 1rem !important; /* Buffer bottom padding for mobile dynamic bars */
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
