@@ -1093,15 +1093,18 @@
 @media (max-width: 768px) {
   .mainArea {
     padding: 5.5rem 1rem 3rem 1rem !important;
-    height: 100vh !important;
+    height: 100% !important;
+    height: 100dvh !important;
     overflow-y: auto !important;
     display: flex;
     flex-direction: column;
+    justify-content: flex-start !important;
     box-sizing: border-box;
   }
   .resultsArea {
     padding: 5.5rem 1rem 3rem 1rem !important; /* Safe padding beneath mobile hamburger icon and above bottom browser UI */
-    height: 100vh !important;
+    height: 100% !important;
+    height: 100dvh !important;
     overflow: hidden !important;
     display: flex;
     flex-direction: column;
@@ -1161,13 +1164,16 @@
     backdrop-filter: blur(8px);
     padding: 0;
   }
+  .headerLeft {
+    gap: 0.5rem !important;
+  }
   .projectName {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     font-weight: 700;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: calc(100vw - 220px);
+    max-width: calc(100vw - 170px);
   }
   .panelBottom {
     display: none;
