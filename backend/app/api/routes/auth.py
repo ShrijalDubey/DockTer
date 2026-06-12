@@ -8,16 +8,17 @@ from app.api.deps import get_db, get_current_user
 from app.core.security import create_access_token
 from app.core.config import settings
 from app import models, schemas
+from app.core.rate_limiter import rate_limit, auth_limiter, general_limiter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-@router.get("/me", response_model=schemas.User)
+@router.get("/me", response_model=schemas.User, dependencies=[Depends(rate_limit(general_limiter))])
 def read_users_me(current_user: models.User = Depends(get_current_user)):
     return current_user
 
 
 
-@router.get("/github/login")
+@router.get("/github/login", dependencies=[Depends(rate_limit(auth_limiter))])
 def github_login():
     client_id = settings.GITHUB_CLIENT_ID
     if not client_id:
@@ -26,7 +27,7 @@ def github_login():
     github_auth_url = f"https://github.com/login/oauth/authorize?client_id={client_id}&scope=user:email"
     return RedirectResponse(url=github_auth_url)
 
-@router.get("/github/callback")
+@router.get("/github/callback", dependencies=[Depends(rate_limit(auth_limiter))])
 async def github_callback(code: str, db: Session = Depends(get_db)):
     if not code:
         raise HTTPException(status_code=400, detail="No code provided")

@@ -1,4 +1,3 @@
-import React from 'react';
 import pythonIcon from '../../../assets/icon/python-svgrepo-com.svg';
 import nodejsIcon from '../../../assets/icon/nodejs-icon-svgrepo-com.svg';
 import goIcon from '../../../assets/icon/Go-Logo_Blue.svg';

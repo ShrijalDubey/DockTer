@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import tempfile
 import zipfile
@@ -7,9 +8,12 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_current_user
 from app import models, schemas
 from app.services.analyzer import analyze_project
+from app.core.rate_limiter import rate_limit, direct_analyze_limiter, general_limiter
 import git
 
 router = APIRouter(prefix="/analyze", tags=["analyze"])
+
+GITHUB_URL_REGEX = re.compile(r"^https://github\.com/[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+(?:\.git)?/?$")
 
 def secure_extract_zip(zip_path: str, extract_dir: str, max_size_mb: int = 100):
     max_bytes = max_size_mb * 1024 * 1024
@@ -23,12 +27,17 @@ def secure_extract_zip(zip_path: str, extract_dir: str, max_size_mb: int = 100):
                 raise HTTPException(status_code=400, detail="Decompressed archive exceeds maximum allowed size (100MB)")
                 
             target_path = os.path.abspath(os.path.join(extract_dir, member.filename))
-            if not target_path.startswith(base_path):
+            try:
+                common = os.path.commonpath([base_path, target_path])
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Malicious path traversal detected inside archive")
+                
+            if common != base_path:
                 raise HTTPException(status_code=400, detail="Malicious path traversal detected inside archive")
                 
             zip_ref.extract(member, extract_dir)
 
-@router.post("/direct")
+@router.post("/direct", dependencies=[Depends(rate_limit(direct_analyze_limiter))])
 async def analyze_direct(
     file: UploadFile = File(...)
 ):
@@ -56,7 +65,7 @@ async def analyze_direct(
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
-@router.post("/upload", response_model=schemas.Project)
+@router.post("/upload", response_model=schemas.Project, dependencies=[Depends(rate_limit(general_limiter))])
 async def analyze_upload(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -98,15 +107,15 @@ async def analyze_upload(
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
-@router.post("/github", response_model=schemas.Project)
+@router.post("/github", response_model=schemas.Project, dependencies=[Depends(rate_limit(general_limiter))])
 async def analyze_github(
     body: schemas.AnalyzeGithubRequest,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
     url = body.url
-    if not url.startswith("https://github.com/"):
-        raise HTTPException(status_code=400, detail="Only GitHub URLs are supported")
+    if not GITHUB_URL_REGEX.match(url):
+        raise HTTPException(status_code=400, detail="Invalid GitHub URL format. Only standard public repositories are supported.")
 
     temp_dir = tempfile.mkdtemp()
     

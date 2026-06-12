@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_current_user
 from app import models, schemas
 from app.services.generator import generate_docker_files
+from app.core.rate_limiter import rate_limit, direct_gen_limiter, general_limiter
 
 from pydantic import BaseModel
 
@@ -13,7 +14,7 @@ class DirectGenerateRequest(BaseModel):
     context: dict
     preferences: Optional[schemas.GenerationPreferences] = None
 
-@router.post("/direct")
+@router.post("/direct", dependencies=[Depends(rate_limit(direct_gen_limiter))])
 async def generate_direct(body: DirectGenerateRequest):
     try:
         prefs_dict = body.preferences.dict() if body.preferences else {
@@ -27,7 +28,7 @@ async def generate_direct(body: DirectGenerateRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/{project_id}", response_model=list[schemas.GeneratedFile])
+@router.post("/{project_id}", response_model=list[schemas.GeneratedFile], dependencies=[Depends(rate_limit(general_limiter))])
 async def generate_project_files(
     project_id: int,
     prefs: Optional[schemas.GenerationPreferences] = None,

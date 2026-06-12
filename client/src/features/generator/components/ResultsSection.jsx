@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { regenerateFiles } from '../../../services/api';
 
@@ -51,7 +51,7 @@ const ResultsSection = ({
         } else {
           setAgentConnected(false);
         }
-      } catch (err) {
+      } catch {
         setAgentConnected(false);
       }
     };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Layout from '../../components/layout/Layout';
 import styles from '../../features/generator/generator.module.css';
 import { useGenerator } from '../../hooks/useGenerator';

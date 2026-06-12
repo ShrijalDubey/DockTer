@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useCallback } from 'react';
 import { AuthContext } from '../../../context/AuthContext';
 import { fetchProjects, deleteProject } from '../../../services/api';
 
@@ -6,7 +6,7 @@ const SidebarNav = ({ styles, setAppState, loadProject, onNavigate, closeSidebar
   const { user, openAuthModal } = useContext(AuthContext);
   const [projects, setProjects] = useState([]);
 
-  const loadProjects = () => {
+  const loadProjects = useCallback(() => {
     if (user) {
       fetchProjects().then(data => {
         setProjects(data);
@@ -14,9 +14,9 @@ const SidebarNav = ({ styles, setAppState, loadProject, onNavigate, closeSidebar
         console.error("Failed to fetch projects", err);
       });
     } else {
-      setProjects([]);
+      Promise.resolve().then(() => setProjects([]));
     }
-  };
+  }, [user]);
 
   const handleDeleteProject = (e, projectId) => {
     e.stopPropagation();
@@ -35,14 +35,14 @@ const SidebarNav = ({ styles, setAppState, loadProject, onNavigate, closeSidebar
   // Fetch on mount / user change
   useEffect(() => {
     loadProjects();
-  }, [user]);
+  }, [loadProjects]);
 
   // Re-fetch when a new project is generated
   useEffect(() => {
     const handleNewProject = () => loadProjects();
     window.addEventListener('projectGenerated', handleNewProject);
     return () => window.removeEventListener('projectGenerated', handleNewProject);
-  }, [user]);
+  }, [loadProjects]);
 
   return (
     <div className={styles.bodySection}>

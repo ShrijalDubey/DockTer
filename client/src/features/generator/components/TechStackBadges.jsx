@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
-export const LANGUAGE_MAP = {
+const LANGUAGE_MAP = {
   // Languages
   python: { color: '#ffde57', bg: 'rgba(53, 114, 165, 0.12)', border: 'rgba(53, 114, 165, 0.35)' },
   javascript: { color: '#f7df1e', bg: 'rgba(247, 223, 30, 0.08)', border: 'rgba(247, 223, 30, 0.25)' },
@@ -47,7 +47,7 @@ export const LANGUAGE_MAP = {
   'github actions': { color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.12)', border: 'rgba(56, 189, 248, 0.35)' },
 };
 
-export const getBadgeStyle = (name) => {
+const getBadgeStyle = (name) => {
   const normName = name.toLowerCase().trim();
   const info = LANGUAGE_MAP[normName] || {
     color: '#cbd5e1',

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../generator.module.css';
 
 const EXTENSIONS = [
@@ -7,8 +7,10 @@ const EXTENSIONS = [
 ];
 
 const FloatingBackground = () => {
-  const items = useMemo(() => {
-    return Array.from({ length: 30 }).map((_, i) => {
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    const generated = Array.from({ length: 30 }).map((_, i) => {
       const text = EXTENSIONS[Math.floor(Math.random() * EXTENSIONS.length)];
       const left = Math.random() * 100;
       const top = Math.random() * 100;
@@ -18,6 +20,7 @@ const FloatingBackground = () => {
       
       return { id: i, text, left, top, duration, delay, fontSize };
     });
+    Promise.resolve().then(() => setItems(generated));
   }, []);
 
   return (

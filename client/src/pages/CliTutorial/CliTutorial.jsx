@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import './CliTutorial.css';
 import logoImg from '../../assets/logo.png';
 
@@ -8,12 +8,10 @@ const CliTutorial = ({ onNavigate }) => {
   const [copyStatus, setCopyStatus] = useState('');
 
   // Step DOM refs for auto-scrolling & scroll tracking
-  const stepRefs = {
-    1: useRef(null),
-    2: useRef(null),
-    3: useRef(null),
-    4: useRef(null)
-  };
+  const step1Ref = useRef(null);
+  const step2Ref = useRef(null);
+  const step3Ref = useRef(null);
+  const step4Ref = useRef(null);
 
   // Flag to temporarily disable scroll tracker when user clicks a sidebar item (smooth scroll duration)
   const isScrollingRef = useRef(false);
@@ -23,7 +21,8 @@ const CliTutorial = ({ onNavigate }) => {
     isScrollingRef.current = true;
     setActiveStep(stepNum);
     
-    stepRefs[stepNum].current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const targetRef = stepNum === 1 ? step1Ref : stepNum === 2 ? step2Ref : stepNum === 3 ? step3Ref : step4Ref;
+    targetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
     // Re-enable scroll tracker after smooth scrolling finishes
     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
@@ -45,12 +44,10 @@ const CliTutorial = ({ onNavigate }) => {
       
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          const stepId = Object.keys(stepRefs).find(
-            (key) => stepRefs[key].current === entry.target
-          );
-          if (stepId) {
-            setActiveStep(Number(stepId));
-          }
+          if (entry.target === step1Ref.current) setActiveStep(1);
+          else if (entry.target === step2Ref.current) setActiveStep(2);
+          else if (entry.target === step3Ref.current) setActiveStep(3);
+          else if (entry.target === step4Ref.current) setActiveStep(4);
         }
       });
     };
@@ -58,9 +55,10 @@ const CliTutorial = ({ onNavigate }) => {
     const observer = new IntersectionObserver(handleIntersection, observerOptions);
 
     // Observe each step card
-    Object.values(stepRefs).forEach((ref) => {
-      if (ref.current) observer.observe(ref.current);
-    });
+    if (step1Ref.current) observer.observe(step1Ref.current);
+    if (step2Ref.current) observer.observe(step2Ref.current);
+    if (step3Ref.current) observer.observe(step3Ref.current);
+    if (step4Ref.current) observer.observe(step4Ref.current);
 
     return () => {
       observer.disconnect();
@@ -158,7 +156,7 @@ const CliTutorial = ({ onNavigate }) => {
         <main className="steps-content-area">
           
           {/* STEP 1 */}
-          <section ref={stepRefs[1]} className="step-card" onClick={() => setActiveStep(1)}>
+          <section ref={step1Ref} className="step-card" onClick={() => setActiveStep(1)}>
             <div className="step-badge">Step 1</div>
             <h2 className="step-title">Choose Package & Copy Command</h2>
             <p className="step-description">
@@ -227,7 +225,7 @@ const CliTutorial = ({ onNavigate }) => {
           </section>
 
           {/* STEP 2 */}
-          <section ref={stepRefs[2]} className="step-card" onClick={() => setActiveStep(2)}>
+          <section ref={step2Ref} className="step-card" onClick={() => setActiveStep(2)}>
             <div className="step-badge">Step 2</div>
             <h2 className="step-title">Initialize and Run the Agent Service</h2>
             <p className="step-description">
@@ -263,7 +261,7 @@ const CliTutorial = ({ onNavigate }) => {
           </section>
 
           {/* STEP 3 */}
-          <section ref={stepRefs[3]} className="step-card" onClick={() => setActiveStep(3)}>
+          <section ref={step3Ref} className="step-card" onClick={() => setActiveStep(3)}>
             <div className="step-badge">Step 3</div>
             <h2 className="step-title">Automatic Dashboard Connection</h2>
             <p className="step-description">
@@ -283,7 +281,7 @@ const CliTutorial = ({ onNavigate }) => {
           </section>
 
           {/* STEP 4 */}
-          <section ref={stepRefs[4]} className="step-card" onClick={() => setActiveStep(4)}>
+          <section ref={step4Ref} className="step-card" onClick={() => setActiveStep(4)}>
             <div className="step-badge">Step 4</div>
             <h2 className="step-title">Orchestrate Container Ecosystems</h2>
             <p className="step-description">

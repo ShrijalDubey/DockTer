@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import logoImg from '../../../assets/logo.png';
 
 const LandingHero = ({ onNavigate }) => {

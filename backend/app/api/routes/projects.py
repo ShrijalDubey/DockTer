@@ -2,8 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_current_user
 from app import models, schemas
+from app.core.rate_limiter import rate_limit, general_limiter
 
-router = APIRouter(prefix="/projects", tags=["projects"])
+router = APIRouter(
+    prefix="/projects",
+    tags=["projects"],
+    dependencies=[Depends(rate_limit(general_limiter))]
+)
 
 @router.get("", response_model=list[schemas.Project])
 def get_projects(

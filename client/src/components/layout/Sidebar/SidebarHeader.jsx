@@ -1,4 +1,3 @@
-import React from 'react';
 
 const SidebarHeader = ({ styles, toggleSidebar, onNavigate }) => {
   return (

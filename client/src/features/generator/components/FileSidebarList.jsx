@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const FileSidebarList = ({ styles, result, selectedFile, setSelectedFile }) => {
   const [isOpen, setIsOpen] = useState(true);

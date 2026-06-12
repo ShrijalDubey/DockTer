@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './Sidebar/Sidebar';
 
 const Layout = ({ children, isSidebarOpen, toggleSidebar, closeSidebar, setAppState, loadProject, onNavigate }) => {
